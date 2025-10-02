@@ -1,0 +1,78 @@
+/* Container for the QR reader */
+.qr-reader-container {
+    position: relative;
+    width: 100%;
+    height: auto; /* Adjust height dynamically based on content */
+  }
+  
+  /* Square border overlay, centered */
+  .scanner-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the overlay */
+    width: 80%; /* Adjust the size of the square as needed */
+    height: 80%; /* Adjust to make the border a perfect square */
+    border: 3px solid green;
+    box-sizing: border-box;
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: 1;
+  }
+  
+  /* Scanning bar effect */
+  .scanner-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: red;
+    animation: scan 2s infinite;
+    z-index: 2;
+    opacity: 0.8;
+  }
+  
+  /* Scanning animation */
+  @keyframes scan {
+    0% {
+      top: 0;
+    }
+    100% {
+      top: 100%;
+    }
+  }
+  
+  /* Square border style */
+  .scanner-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 3px solid green;
+    box-sizing: border-box;
+    z-index: 3;
+  }
+  
+  .qr-green-box {
+    position: relative;
+    width: 16rem; /* 256px */
+    height: 16rem; /* 256px */
+    border: 4px solid #22c55e; /* Tailwind green-500 */
+    box-sizing: border-box;
+  }
+  
+  @keyframes scan-move {
+    0% { top: 0; }
+    100% { top: calc(100% - 2px); }
+  }
+  
+  .animate-scan {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: red;
+    animation: scan-move 0.8s cubic-bezier(0.4,0,0.2,1) infinite alternate;
+    z-index: 2;
+  }
