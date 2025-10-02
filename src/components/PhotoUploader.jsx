@@ -147,10 +147,13 @@ const PhotoUploader = () => {
             const fileName1 = `images/${scannedToken}_${userData.name.firstName}_${userData.name.lastName}_face.jpg`;
             const storageRef1 = ref(storage, fileName1);
             await uploadBytes(storageRef1, blob1);
+            
             const blob2 = await fetch(docPhoto).then(res => res.blob());
             const fileName2 = `images/${scannedToken}_${userData.name.firstName}_${userData.name.lastName}_doc.jpg`;
             const storageRef2 = ref(storage, fileName2);
             await uploadBytes(storageRef2, blob2);
+            
+            // Photos uploaded successfully - URLs will be generated dynamically when needed
             setSuccessMsg("Photos uploaded successfully!");
             setTimeout(resetAll, 2000);
         } catch (error) {

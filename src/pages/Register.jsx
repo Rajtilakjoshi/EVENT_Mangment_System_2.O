@@ -26,7 +26,9 @@ const Register = () => {
     setSuccess("");
     setLoading(true);
     try {
-      const res = await fetch("/api/register", {
+      // Use the backend API URL for registration
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://divine-backend-122149630256.us-central1.run.app';
+      const res = await fetch(`${apiUrl}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

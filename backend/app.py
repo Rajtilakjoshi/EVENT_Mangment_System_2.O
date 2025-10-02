@@ -216,7 +216,57 @@ def get_prasad_status():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route('/api/prasad/update', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
+def register_user():
+    """Register a new user"""
+    try:
+        data = request.get_json()
+        firstName = data.get('firstName')
+        lastName = data.get('lastName')
+        email = data.get('email')
+        mobile = data.get('mobile')
+        whatsappMobile = data.get('whatsappMobile')
+        role = data.get('role')
+        
+        if not all([firstName, lastName, email, mobile, whatsappMobile, role]):
+            return jsonify({"success": False, "error": "Missing required fields"}), 400
+        
+        # Check if user already exists (you can implement this with your user storage)
+        # For now, we'll just return success
+        import random
+        password = f"divine@123{random.randint(1000, 9999)}"
+        
+        # Here you would typically save to your user database
+        # For now, we'll just return success
+        
+        return jsonify({"success": True, "message": "Registration successful"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/user/update-photo-doc', methods=['POST'])
+def update_photo_doc():
+    """Update photo and document URLs for a user by token"""
+    try:
+        from mongo_utils import guests_collection
+        data = request.get_json()
+        token = data.get('token')
+        photo = data.get('photo')
+        document = data.get('document')
+        if not token:
+            return jsonify({"success": False, "message": "Token is required"}), 400
+        update_fields = {}
+        if photo is not None:
+            update_fields['photo'] = photo
+        if document is not None:
+            update_fields['document'] = document
+        if not update_fields:
+            return jsonify({"success": False, "message": "No fields to update"}), 400
+        result = guests_collection.update_one({"token": token}, {"$set": update_fields})
+        if result.matched_count == 0:
+            return jsonify({"success": False, "message": "User not found"}), 404
+        return jsonify({"success": True, "message": "Photo/document updated successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 def update_prasad():
     """Update prasad status and save to CSV"""
     try:

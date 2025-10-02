@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import QrReader from 'react-qr-scanner';
 import { API_BASE_URL } from '../utils/apiUtils';
+import { getDynamicFacePhotoUrl } from '../utils/firebaseUtils';
 
 
 const QRScannerEntryGate = () => {
@@ -12,6 +13,7 @@ const QRScannerEntryGate = () => {
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [photoUrl, setPhotoUrl] = useState("");
 
 
 
@@ -28,7 +30,8 @@ const QRScannerEntryGate = () => {
                 setPrasadData(null);
                 setScannedToken("");
                 setSuccessMsg("");
-            }, 1500);
+                setPhotoUrl("");
+            }, 4000); // 4 seconds auto-close after success
             return () => clearTimeout(timer);
         }
     }, [successMsg]);
@@ -93,6 +96,20 @@ const QRScannerEntryGate = () => {
                     return;
                 }
                 setUserData(userInfo.user);
+                
+                // Generate dynamic photo URL
+                try {
+                    const dynamicPhotoUrl = await getDynamicFacePhotoUrl(
+                        userInfo.user.token,
+                        userInfo.user.name.firstName,
+                        userInfo.user.name.lastName
+                    );
+                    setPhotoUrl(dynamicPhotoUrl || '');
+                } catch (error) {
+                    console.error('Error generating photo URL:', error);
+                    setPhotoUrl('');
+                }
+                
                 // Fetch prasad status using the same token
                 const prasadResponse = await fetch(`${API_BASE_URL}/api/prasad/status?token=${scannedToken}`);
                 if (prasadResponse.status === 404) {
@@ -120,12 +137,17 @@ const QRScannerEntryGate = () => {
         setErrorMsg("Camera error: " + err.message);
     };
 
-    const getPhotoUrl = (photoUrl) => {
-    // Dynamically construct Firebase Storage public URL for profile image
-    if (!userData) return '';
-    const bucket = 'divine-36910.firebasestorage.app';
-    const fileName = `${userData.token}_${userData.name.firstName}_${userData.name.lastName}_face.jpg`;
-    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/images%2F${encodeURIComponent(fileName)}?alt=media`;
+    const getPhotoUrl = () => {
+        // Use dynamically generated photo URL
+        if (photoUrl) {
+            return photoUrl;
+        }
+        
+        // Fallback to constructed URL if dynamic URL generation failed
+        if (!userData) return '';
+        const bucket = 'divine-36910.firebasestorage.app';
+        const fileName = `${userData.token}_${userData.name.firstName}_${userData.name.lastName}_face.jpg`;
+        return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/images%2F${encodeURIComponent(fileName)}?alt=media`;
     };
 
     return (
@@ -166,45 +188,94 @@ const QRScannerEntryGate = () => {
                                         setUserData(null);
                                         setPrasadData(null);
                                         setScannedToken("");
+                                        setPhotoUrl("");
                                     }}
                                 >
                                         <div
-                                            className="w-full max-w-4xl h-full max-h-[95vh] overflow-y-auto bg-white rounded-lg shadow-xl p-8 flex flex-col items-center"
+                                            className="w-full max-w-2xl h-full max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-xl p-4 flex flex-col items-center relative"
                                             onClick={e => e.stopPropagation()}
                                         >
-                        <h4 className="text-2xl font-bold mb-6 text-black text-center">User Details</h4>
+                        {/* Close Button */}
+                        <button
+                            className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-2xl font-bold z-50 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-gray-200 hover:border-gray-300"
+                            onClick={() => {
+                                setShowUserForm(false);
+                                setShowQrScannerEntry(true);
+                                setUserData(null);
+                                setPrasadData(null);
+                                setScannedToken("");
+                                setPhotoUrl("");
+                            }}
+                            title="Close"
+                        >
+                            ×
+                        </button>
+                        
+                        <h4 className="text-xl font-bold mb-3 text-black text-center">User Details</h4>
                         <img
                             src={getPhotoUrl()}
                             alt={`${userData?.name?.firstName || ''} ${userData?.name?.lastName || ''}`}
-                            className="w-48 h-48 rounded-full object-cover mb-6 border-4 border-purple-400"
-                            style={{maxWidth: '30vw', maxHeight: '30vw'}}
+                            className="w-24 h-24 rounded-full object-cover mb-3 border-2 border-purple-400"
+                            onError={(e) => {
+                                console.log('Image failed to load:', e.target.src);
+                                // If the image fails to load, try to refresh the page or show a placeholder
+                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg==';
+                            }}
                         />
-                        <form className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                            <div className="flex flex-col mb-2">
-                                <label className="font-bold text-black text-base mb-1">First Name:</label>
-                                <input type="text" value={userData?.name?.firstName || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Middle Name:</label>
-                                <input type="text" value={userData?.name?.middleName || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Last Name:</label>
-                                <input type="text" value={userData?.name?.lastName || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Token:</label>
-                                <input type="text" value={userData?.token || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Gender:</label>
-                                <input type="text" value={userData?.gender || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Age:</label>
-                                <input type="text" value={userData?.age || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
+                        <div className="w-full max-w-lg">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="space-y-2">
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">First Name</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.name?.firstName || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Middle Name</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.name?.middleName || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Last Name</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.name?.lastName || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Token</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm font-mono">{userData?.token || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Gender</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.gender || 'Not specified'}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Age</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.age || ''}</div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Email</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm break-all">{userData?.email || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Phone Number</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.phoneNumber || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Alternate Phone</label>
+                                        <div className="bg-gray-50 border border-gray-300 rounded px-3 py-2 text-sm">{userData?.alternatePhoneNumber || ''}</div>
+                                    </div>
+                                    <div>
+                                        <label className="block font-semibold text-gray-700 text-xs mb-1">Entry Gate Status</label>
+                                        <div className={`border rounded px-3 py-2 text-sm font-semibold ${
+                                            prasadData?.prasad?.entryGate 
+                                                ? 'bg-green-50 border-green-300 text-green-700' 
+                                                : 'bg-red-50 border-red-300 text-red-700'
+                                        }`}>
+                                            {prasadData?.prasad?.entryGate ? 'Allowed' : 'Not Allowed'}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex flex-col mb-2">
-                                <label className="font-bold text-black text-base mb-1">Email:</label>
-                                <input type="text" value={userData?.email || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Phone Number:</label>
-                                <input type="text" value={userData?.phoneNumber || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Alternate Phone Number:</label>
-                                <input type="text" value={userData?.alternatePhoneNumber || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                                <label className="font-bold text-black text-base mb-1">Entry Gate Pass</label>
-                                <input type="text" value={prasadData?.prasad?.entryGate || ''} readOnly className="border border-purple-400 rounded px-2 py-1 bg-white text-black text-lg w-full box-border mb-2" />
-                            </div>
-                        </form>
+                        </div>
                         {prasadData?.prasad?.entryGate === true && (
                             <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center">
                                 <p className="text-red-500 text-lg font-bold mb-4">User already allowed entry!</p>
@@ -213,13 +284,13 @@ const QRScannerEntryGate = () => {
                         {prasadData?.prasad?.entryGate !== true && (
                             <button
                                 onClick={() => updateEntryGateStatus(scannedToken)}
-                                className="mt-4 px-5 py-3 bg-purple-500 text-white rounded transition-colors duration-300 hover:bg-purple-400 w-full"
+                                className="mt-3 px-4 py-2 bg-purple-500 text-white rounded transition-colors duration-300 hover:bg-purple-400 w-full text-sm"
                                 disabled={isProcessing}
                             >
-                                {isProcessing ? 'Updating...' : 'Confirm and Update Entry Gate Status'}
+                                {isProcessing ? 'Updating...' : 'Confirm Entry Gate'}
                             </button>
                         )}
-                        {successMsg && <div className="text-green-700 font-bold mt-2">{successMsg}</div>}
+                        {successMsg && <div className="text-green-700 font-bold mt-2 text-sm">{successMsg}</div>}
                     </div>
                 </div>
             )}
