@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🕉️ Divine Energy Hub - Complete System
 
 A comprehensive event management system with QR code scanning, user management, and prasad distribution tracking.
@@ -137,3 +138,6 @@ python app.py
 ---
 
 **Made with ❤️ for Divine Energy Hub**
+=======
+# EVENT_Mangment_System_2.O
+>>>>>>> db1e894833be65c7c4d3e2b94aa0a5254cbb27cd
