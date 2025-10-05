@@ -1,13 +1,13 @@
 // Vercel/Node.js API route for Firestore-based login and first-login password reset
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import serviceAccount from '../serviceAccountKey.json';
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 import nodemailer from 'nodemailer';
 
 if (!global._firebaseApp) {
   global._firebaseApp = initializeApp({
     credential: cert(serviceAccount),
-    projectId: 'divine-36910',
+    projectId: serviceAccount.project_id,
   });
 }
 const db = getFirestore();

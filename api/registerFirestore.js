@@ -1,14 +1,14 @@
 // Vercel/Node.js API route for registration with Firestore and email notification
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import serviceAccount from '../serviceAccountKey.json';
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 import nodemailer from 'nodemailer';
 
 // Initialize Firebase Admin SDK
 if (!global._firebaseApp) {
   global._firebaseApp = initializeApp({
     credential: cert(serviceAccount),
-    projectId: 'divine-36910',
+    projectId: serviceAccount.project_id,
   });
 }
 const db = getFirestore();

@@ -24,3 +24,6 @@ yarn-error.log*
 divine-2025-data-service-account.json
 .env
 .vercel
+serviceAccountKey.json
+.env
+.vercel
