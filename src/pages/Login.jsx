@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// ...existing code...
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,21 +17,23 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/loginFirestore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.needsPasswordReset) {
+      if (data.firstLogin) {
         setShowPasswordSetup(true);
+        setSuccess('Please set a new password for your first login.');
       } else if (data.success) {
-        navigate('/homepage');
+        if (onLogin) onLogin();
+        navigate('/homepage', { replace: true });
       } else {
-        setError(data.error || "Login failed.");
+        setError(data.error || 'Login failed.');
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.message || 'Login failed. Please try again.');
     }
     setLoading(false);
   };
@@ -47,20 +48,23 @@ const Login = () => {
       return;
     }
     try {
-      const res = await fetch("/api/set-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: newPassword, confirmPassword: confirmNewPassword })
+      const res = await fetch('/api/loginFirestore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, newPassword })
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.reset) {
         setShowPasswordSetup(false);
-        setSuccess("Password set! You can now log in.");
+        setSuccess('Password set! Please log in with your new password.');
+        setPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
       } else {
-        setError(data.error || "Failed to set password.");
+        setError(data.error || 'Failed to set password.');
       }
     } catch (err) {
-      setError("Failed to set password. Please try again.");
+      setError(err.message || 'Failed to set password. Please try again.');
     }
     setLoading(false);
   };
@@ -86,6 +90,27 @@ const Login = () => {
         )}
         <div className="flex justify-between mt-4">
           <button className="text-blue-600 hover:underline" onClick={() => navigate('/register')}>Register</button>
+          <button className="text-blue-600 hover:underline" onClick={async () => {
+            setError("");
+            setSuccess("");
+            setLoading(true);
+            try {
+              const res = await fetch('/api/loginFirestore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, forgot: true })
+              });
+              const data = await res.json();
+              if (data.success) {
+                setSuccess('Credentials sent to your email.');
+              } else {
+                setError(data.error || 'Failed to send credentials.');
+              }
+            } catch (err) {
+              setError(err.message || 'Failed to send credentials.');
+            }
+            setLoading(false);
+          }}>Forgot Password?</button>
         </div>
       </div>
     </div>

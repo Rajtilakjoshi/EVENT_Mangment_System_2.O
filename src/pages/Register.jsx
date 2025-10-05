@@ -26,12 +26,19 @@ const Register = () => {
     setSuccess("");
     setLoading(true);
     try {
-      // Use the backend API URL for registration
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://divine-backend-122149630256.us-central1.run.app';
-      const res = await fetch(`${apiUrl}/api/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+      // Collect password from user or set a default
+      const password = form.password || 'changeme123';
+      const name = `${form.firstName} ${form.lastName}`;
+      const res = await fetch('/api/registerFirestore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password,
+          role: form.role,
+          name,
+          phone: form.mobile
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -40,7 +47,7 @@ const Register = () => {
         setError(data.error || "Registration failed.");
       }
     } catch (err) {
-      setError("Registration failed. Please try again.");
+      setError(err.message || "Registration failed. Please try again.");
     }
     setLoading(false);
   };
