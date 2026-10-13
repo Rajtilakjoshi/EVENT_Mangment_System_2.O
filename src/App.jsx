@@ -6,6 +6,7 @@ import Homepage from "./components/Homepage/Homepage.jsx";
 import Register from "./pages/Register.jsx";
 import Login from "./pages/Login.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import ApiManualTestConsole from "./components/ApiManualTestConsole.jsx";
 import { apiFetch } from "./utils/apiUtils";
 import { startOnlineFlush } from "./utils/offlineQueue";
 
@@ -170,6 +171,7 @@ function AppShell() {
             </ProtectedRoute>
           }
         />
+        <Route path="/api-test" element={<ApiManualTestConsole />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>

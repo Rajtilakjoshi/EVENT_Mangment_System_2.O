@@ -6,6 +6,7 @@ import SystemPerformanceChart from "../components/SystemPerformanceChart";
 import GuestDirectoryPdfPreview from "../components/GuestDirectoryPdfPreview";
 import AdminGuestBatchUpload from "../components/AdminGuestBatchUpload";
 import AdminQrBadgeSheet from "../components/AdminQrBadgeSheet";
+import ApiManualTestConsole from "../components/ApiManualTestConsole";
 
 const StatCard = ({ label, value, sub, tone = "purple" }) => {
   const tones = {
@@ -213,6 +214,22 @@ const AdminDashboard = () => {
               Print Cards
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("apiTest")}
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap active:scale-95 ${
+              activeTab === "apiTest"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/20"
+                : "bg-white text-purple-900 hover:text-purple-950 border border-purple-200 hover:bg-purple-50"
+            }`}
+          >
+            <span>🧪</span>
+            <span>5. Manual API Testing Console</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold ml-0.5">
+              Live Test
+            </span>
+          </button>
         </div>
 
         {error ? (
@@ -380,6 +397,13 @@ const AdminDashboard = () => {
             {activeTab === "badges" && (
               <div className="mb-6 animate-fadeIn">
                 <AdminQrBadgeSheet />
+              </div>
+            )}
+
+            {/* SUBPAGE 5: MANUAL API TESTING CONSOLE */}
+            {activeTab === "apiTest" && (
+              <div className="mb-6 animate-fadeIn">
+                <ApiManualTestConsole />
               </div>
             )}
           </>

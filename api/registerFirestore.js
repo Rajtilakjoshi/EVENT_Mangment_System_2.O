@@ -3,97 +3,133 @@ import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+let serviceAccountCache = null;
 
-// Initialize Firebase Admin SDK
-if (!global._firebaseApp) {
-  global._firebaseApp = initializeApp({
-    credential: cert(serviceAccount),
-    projectId: serviceAccount.project_id,
+function getServiceAccount() {
+  if (serviceAccountCache) return serviceAccountCache;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      serviceAccountCache = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : process.env.FIREBASE_SERVICE_ACCOUNT;
+      return serviceAccountCache;
+    } catch (e) {
+      console.warn('Could not parse FIREBASE_SERVICE_ACCOUNT env:', e.message);
+    }
+  }
+  try {
+    const keyPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
+    if (fs.existsSync(keyPath)) {
+      serviceAccountCache = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+      return serviceAccountCache;
+    }
+  } catch (e) {
+    console.warn('Could not load serviceAccountKey.json from disk:', e.message);
+  }
+  return null;
+}
+
+function getDb() {
+  const sa = getServiceAccount();
+  if (!sa) {
+    throw new Error('Firebase Service Account configuration is missing');
+  }
+  if (!global._firebaseApp) {
+    global._firebaseApp = initializeApp({
+      credential: cert(sa),
+      projectId: sa.project_id || 'divine-36910',
+    });
+  }
+  return getFirestore();
+}
+
+const SMTP_USER = process.env.SMTP_USER || 'rajtilakjoshij@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'dodj zcdv tzfd fqsn';
+
+function getTransporter() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
   });
 }
-const db = getFirestore();
-
-// Email config
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL; // for volunteer notifications (all admins)
-const DEV_EMAILS = (process.env.DEV_EMAIL || '').split(',').map(e => e.trim()).filter(Boolean);
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
 
 const BCRYPT_ROUNDS = 12;
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
-  },
-});
-
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  const { email, name, phone, whatsappMobile } = req.body;
+
+  const { email, name, phone, whatsappMobile } = req.body || {};
   if (!email || !name || !phone) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return res.status(400).json({ error: 'Missing required fields (email, name, phone)' });
   }
-  // Public self-register is always volunteer (admins are provisioned offline)
+
+  const cleanEmail = email.trim().toLowerCase();
   const role = 'volunteer';
   const randomNum = Math.floor(100 + Math.random() * 900);
   const tempPassword = `divine@${randomNum}`;
+
   try {
-    const userSnap = await db.collection('users').where('email', '==', email).get();
+    const db = getDb();
+    const userSnap = await db.collection('users').where('email', '==', cleanEmail).get();
     if (!userSnap.empty) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'Email already registered in system' });
     }
-    // Hash the temporary password before storing
+
     const hashedPassword = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
     await db.collection('users').add({
-      email,
+      email: cleanEmail,
       password: hashedPassword,
       role,
-      name,
-      phone,
-      whatsappMobile: whatsappMobile || phone,
+      name: name.trim(),
+      phone: phone.trim(),
+      whatsappMobile: (whatsappMobile || phone).trim(),
       firstLogin: true,
-      authorized: false,
+      createdAt: new Date().toISOString(),
     });
 
-    // Send temporary password to the user (they must change it on first login)
-    await transporter.sendMail({
-      from: SMTP_USER,
-      to: email,
-      subject: 'Divine Event — Registration Successful',
-      html: `<h2 style="color:#7c3aed">Welcome!</h2>
-        <p>Your temporary password is: <b>${tempPassword}</b></p>
-        <p>You will be asked to set a new password on your first login.</p>`
-    });
-
-    // Notify admins (without the password)
-    const subject = `New ${role} registration`;
-    const html = `<h2 style="color:#7c3aed">New ${role} registration</h2>
-      <b>Name:</b> ${name}<br/>
-      <b>Phone:</b> ${phone}<br/>
-      <b>Email:</b> ${email}<br/>
-      <b>Role:</b> ${role}<br/>`;
-
-    const adminsSnap = await db.collection('users')
-      .where('role', '==', 'admin')
-      .where('authorized', '==', true)
-      .get();
-    const adminEmails = adminsSnap.docs.map(doc => doc.data().email).filter(Boolean);
-    if (adminEmails.length === 0 && ADMIN_EMAIL) {
-      adminEmails.push(ADMIN_EMAIL);
+    let emailSent = false;
+    try {
+      const transporter = getTransporter();
+      await transporter.sendMail({
+        from: SMTP_USER,
+        to: cleanEmail,
+        subject: 'Divine Energy Hub — Volunteer Account Created',
+        html: `<h2>Welcome to Divine Energy Hub</h2>
+          <p>Hello <b>${name}</b>,</p>
+          <p>Your volunteer access has been created.</p>
+          <p>Your temporary login password is: <b>${tempPassword}</b></p>
+          <p>You will be prompted to set your personal password upon first login.</p>`,
+      });
+      emailSent = true;
+    } catch (mailErr) {
+      console.warn('SMTP delivery failed on registration:', mailErr.message);
     }
-    await Promise.all(
-      [...adminEmails, ...DEV_EMAILS].filter(Boolean).map(to =>
-        transporter.sendMail({ from: SMTP_USER, to, subject, html })
-      )
-    );
-    return res.status(200).json({ success: true });
+
+    return res.status(201).json({
+      success: true,
+      message: emailSent
+        ? 'Account created! Temporary password sent to email.'
+        : `Account created! Temporary password: ${tempPassword}`,
+      tempPassword: emailSent ? undefined : tempPassword,
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('Registration error:', err);
+    return res.status(500).json({ error: err.message || 'Internal registration error' });
   }
 }
