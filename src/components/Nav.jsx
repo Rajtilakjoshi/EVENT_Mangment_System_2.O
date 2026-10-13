@@ -20,16 +20,16 @@ const Nav = ({ onLogout, isAuth }) => {
           <h1 className="text-purple-700 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wider">Divine Energy Hub</h1>
         </div>
         {isAuth && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => navigate("/admin")}
-              className="bg-white text-purple-700 border border-purple-300 px-3 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-colors text-sm"
+              className="bg-white/90 text-purple-900 border border-purple-300 px-3.5 py-2 rounded-xl font-bold hover:bg-purple-50 transition shadow-sm text-sm"
             >
-              Live Monitor
+              👑 Admin Dashboard
             </button>
             <button
               onClick={handleLogout}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl font-bold hover:from-purple-700 hover:to-indigo-700 transition shadow-md text-sm"
             >
               Logout
             </button>

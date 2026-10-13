@@ -115,55 +115,55 @@ const AdminDashboard = () => {
         <div className="no-print flex flex-wrap items-center justify-between gap-3 mb-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-                Live Event Operations Console (2026)
+              <h1 className="text-2xl md:text-3xl font-extrabold text-purple-950">
+                Event Admin Dashboard
               </h1>
-              <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">
-                Authoritative
+              <span className="text-xs uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
+                Live Overview
               </span>
             </div>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              Live source: MongoDB / DocumentDB aggregation · Refreshes every {STATS_REFRESH_MS / 1000}s
+            <p className="text-xs md:text-sm font-bold text-purple-700 mt-1">
+              Real-time Event Attendance • Auto-refreshes every {STATS_REFRESH_MS / 1000} seconds
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                stale ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+              className={`text-xs font-extrabold px-3 py-1.5 rounded-full border shadow-xs ${
+                stale ? "bg-amber-100 text-amber-900 border-amber-300" : "bg-emerald-100 text-emerald-900 border-emerald-300"
               }`}
             >
-              {stale ? "⚠️ Possible Sync Lag" : "● Live & Authoritative"}
+              {stale ? "⚠️ Reconnecting…" : "● System Online"}
             </span>
             <button
               type="button"
               onClick={load}
-              className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition active:scale-95"
+              className="px-3.5 py-2 text-xs font-bold rounded-xl bg-white border border-purple-300 text-purple-950 hover:bg-purple-50 transition shadow-sm active:scale-95"
             >
-              Refresh
+              🔄 Refresh Now
             </button>
             <button
               type="button"
               onClick={syncSheet}
-              className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition active:scale-95"
+              className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition shadow-md active:scale-95"
             >
-              Sync to Sheets
+              📊 Sync Google Sheet
             </button>
           </div>
         </div>
 
         {/* Subpage Tabs Navigation (4 Dedicated Sections) */}
-        <div className="no-print flex items-center gap-2 mb-6 border-b border-slate-200 pb-3 overflow-x-auto scrollbar-none">
+        <div className="no-print flex items-center gap-2 mb-6 border-b-2 border-purple-100 pb-3 overflow-x-auto scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveTab("monitor")}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap active:scale-95 ${
               activeTab === "monitor"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/20"
+                : "bg-white text-purple-900 hover:text-purple-950 border border-purple-200 hover:bg-purple-50"
             }`}
           >
             <span>📊</span>
-            <span>1. Live Monitor</span>
+            <span>1. Live Attendance Monitor</span>
           </button>
 
           <button
@@ -171,14 +171,14 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("report")}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap active:scale-95 ${
               activeTab === "report"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/20"
+                : "bg-white text-purple-900 hover:text-purple-950 border border-purple-200 hover:bg-purple-50"
             }`}
           >
             <span>📋</span>
-            <span>2. Guest Report</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 font-bold ml-0.5">
-              {s.totalGuests || 60}
+            <span>2. Guest Directory & PDF Report</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 font-extrabold ml-0.5">
+              {s.totalGuests || 90}
             </span>
           </button>
 
@@ -187,14 +187,14 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("entry")}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap active:scale-95 ${
               activeTab === "entry"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/20"
+                : "bg-white text-purple-900 hover:text-purple-950 border border-purple-200 hover:bg-purple-50"
             }`}
           >
             <span>➕</span>
-            <span>3. New Entry (Batch)</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-bold ml-0.5">
-              Max 40
+            <span>3. Add Guests (Upload Excel/CSV)</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold ml-0.5">
+              Batch
             </span>
           </button>
 
@@ -203,14 +203,14 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("badges")}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition flex items-center gap-2 whitespace-nowrap active:scale-95 ${
               activeTab === "badges"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/20"
+                : "bg-white text-purple-900 hover:text-purple-950 border border-purple-200 hover:bg-purple-50"
             }`}
           >
             <span>🏷️</span>
-            <span>4. QR Code Sheet</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-800 font-bold ml-0.5">
-              Print Passes
+            <span>4. Print QR Passes & Badges</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-extrabold ml-0.5">
+              Print Cards
             </span>
           </button>
         </div>
@@ -303,56 +303,59 @@ const AdminDashboard = () => {
 
                 {/* Health & Diagnostic Row */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-slate-500 uppercase font-semibold">DB Health & Latency</div>
-                      <div className="text-sm font-bold text-slate-800 mt-0.5">
+                      <div className="text-xs text-purple-900 uppercase font-extrabold">Database Connection Speed</div>
+                      <div className="text-sm font-bold text-gray-900 mt-0.5">
                         {s.dbStatus || "Connected"} · {s.dbLatencyMs ? `${s.dbLatencyMs} ms` : "< 15 ms"}
                       </div>
                     </div>
-                    <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div className="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></div>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-slate-500 uppercase font-semibold">Google Sheets Mirror</div>
-                      <div className="text-sm font-bold text-slate-800 mt-0.5">
-                        {s.lastSyncTime ? new Date(s.lastSyncTime).toLocaleTimeString() : "Pending sync"}
+                      <div className="text-xs text-purple-900 uppercase font-extrabold">Google Sheets Status</div>
+                      <div className="text-sm font-bold text-gray-900 mt-0.5">
+                        {s.lastSyncTime ? new Date(s.lastSyncTime).toLocaleTimeString() : "Ready to sync"}
                       </div>
                     </div>
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Write-Behind</span>
+                    <span className="text-xs font-bold bg-purple-100 text-purple-900 px-2.5 py-1 rounded-full border border-purple-200">
+                      6 Tabs Active
+                    </span>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-slate-500 uppercase font-semibold">Scanner Device Outbox</div>
-                      <div className="text-sm font-bold text-slate-800 mt-0.5">
-                        {pending} queued offline scans
+                      <div className="text-xs text-purple-900 uppercase font-extrabold">Offline Scans Waiting</div>
+                      <div className="text-sm font-bold text-gray-900 mt-0.5">
+                        {pending} offline scans waiting
                       </div>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded ${pending > 0 ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
-                      {pending > 0 ? "Flushing…" : "Synced"}
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${pending > 0 ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"}`}>
+                      {pending > 0 ? "Uploading…" : "All Saved"}
                     </span>
                   </div>
                 </div>
 
-                {/* Exact Counting Rules Reference Card */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 text-xs text-slate-600 leading-relaxed">
-                  <h3 className="font-bold text-slate-800 mb-2 uppercase tracking-wide">
-                    📐 Authoritative Metric Counting Rules (2026 Audit)
+                {/* Plain English Counting Rules Reference Card */}
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-purple-100 text-xs text-gray-800 leading-relaxed">
+                  <h3 className="font-extrabold text-sm text-purple-950 mb-2 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>📋</span>
+                    <span>Event Attendance & Counting Summary</span>
                   </h3>
-                  <ul className="list-disc pl-5 space-y-1">
+                  <ul className="list-disc pl-5 space-y-1.5 font-medium">
                     <li>
-                      <strong>Entry Gate Count:</strong> Exact count of unique guests where <code className="bg-slate-100 px-1 py-0.5 rounded">EntryGateStatus == true</code>. Repeated scans increment <em>Duplicate Scans Prevented</em> and never inflate the guest count.
+                      <strong className="text-purple-950 font-bold">Total Entry Count:</strong> Counts unique attendees who walked through the gate. Scanning the same pass twice does not inflate your guest count.
                     </li>
                     <li>
-                      <strong>Remaining Outside:</strong> Evaluated atomically as <code className="bg-slate-100 px-1 py-0.5 rounded">max(0, TotalGuests - EntryGate)</code>.
+                      <strong className="text-purple-950 font-bold">Remaining Outside:</strong> Guests registered who have not yet reached the entrance gates.
                     </li>
                     <li>
-                      <strong>Meal Distribution (Prasad 1/2/3):</strong> Independent unique guest counts for each meal distribution station. Requires valid prior entry check-in.
+                      <strong className="text-purple-950 font-bold">Food / Prasad Counters:</strong> Tracks meals served at Counters 1, 2, and 3. Prevents duplicate collection.
                     </li>
                     <li>
-                      <strong>Single Source of Truth:</strong> Live totals are computed exclusively via MongoDB compound index aggregations. Google Sheets acts as an asynchronous export mirror and does not dictate live counts.
+                      <strong className="text-purple-950 font-bold">Google Sheets:</strong> Updates all 6 spreadsheet tabs whenever you tap "Sync Google Sheet".
                     </li>
                   </ul>
                 </div>

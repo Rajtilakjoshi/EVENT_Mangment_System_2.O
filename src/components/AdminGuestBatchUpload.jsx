@@ -51,9 +51,9 @@ const AdminGuestBatchUpload = ({ onUploadSuccess }) => {
 
   // Generate and download sample CSV template
   const downloadSampleCsv = () => {
-    const nextStart = seriesInfo?.nextStart || "24Dummy061";
-    const prefix = seriesInfo?.prefix || "24Dummy";
-    const lastNum = seriesInfo?.lastNum || 60;
+    const nextStart = seriesInfo?.nextStart || "24Guest091";
+    const prefix = seriesInfo?.prefix || "24Guest";
+    const lastNum = seriesInfo?.lastNum || 90;
     const padLen = seriesInfo?.padLen || 3;
 
     const row1Token = `${prefix}${(lastNum + 1).toString().padStart(padLen, "0")}`;
@@ -129,8 +129,8 @@ const AdminGuestBatchUpload = ({ onUploadSuccess }) => {
         const docIdx = headerRow.findIndex((h) => h === "documenturl" || h === "document");
 
         const parsed = [];
-        let autoTokenIndex = (seriesInfo?.lastNum || 60) + 1;
-        const prefix = seriesInfo?.prefix || "24Dummy";
+        let autoTokenIndex = (seriesInfo?.lastNum || 90) + 1;
+        const prefix = seriesInfo?.prefix || "24Guest";
         const padLen = seriesInfo?.padLen || 3;
 
         for (let i = 1; i < lines.length; i++) {
@@ -308,38 +308,38 @@ const AdminGuestBatchUpload = ({ onUploadSuccess }) => {
       {/* Series Range Showcase Panel */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-5 p-4 rounded-xl bg-gradient-to-r from-purple-50/70 via-indigo-50/50 to-slate-50 border border-purple-100">
         <div className="flex flex-col">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Current Last Guest Token
+          <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+            Last Registered Pass Number
           </span>
-          <span className="text-lg font-mono font-extrabold text-purple-900 mt-0.5">
-            {loadingSeries ? "Loading…" : seriesInfo?.lastToken || "24Dummy060"}
+          <span className="text-lg font-mono font-extrabold text-purple-950 mt-0.5">
+            {loadingSeries ? "Loading…" : seriesInfo?.lastToken || "24Guest090"}
           </span>
-          <span className="text-[11px] text-slate-500 mt-0.5">
-            Total currently registered: <strong>{seriesInfo?.totalGuests || 60}</strong>
-          </span>
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-            Next Start Token
-          </span>
-          <span className="text-lg font-mono font-extrabold text-emerald-800 mt-0.5">
-            {loadingSeries ? "…" : seriesInfo?.nextStart || "24Dummy061"}
-          </span>
-          <span className="text-[11px] text-emerald-600 mt-0.5">
-            Immediate next sequential badge
+          <span className="text-[11px] font-bold text-gray-700 mt-0.5">
+            Total registered: <strong>{seriesInfo?.totalGuests || 90}</strong>
           </span>
         </div>
 
         <div className="flex flex-col">
-          <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">
-            Allowed 40-Series Range
+          <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+            Next Available Pass Number
           </span>
-          <span className="text-base font-mono font-extrabold text-indigo-900 mt-0.5 truncate">
-            {seriesInfo?.nextStart || "24Dummy061"} → {seriesInfo?.nextRangeEnd40 || "24Dummy100"}
+          <span className="text-lg font-mono font-extrabold text-emerald-900 mt-0.5">
+            {loadingSeries ? "…" : seriesInfo?.nextStart || "24Guest091"}
           </span>
-          <span className="text-[11px] text-indigo-600 mt-0.5">
-            Strict ceiling: Max 40 entries / batch
+          <span className="text-[11px] font-bold text-emerald-700 mt-0.5">
+            Next sequential pass in series
+          </span>
+        </div>
+
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">
+            Allowed Batch Range (Max 40)
+          </span>
+          <span className="text-base font-mono font-extrabold text-indigo-950 mt-0.5 truncate">
+            {seriesInfo?.nextStart || "24Guest091"} → {seriesInfo?.nextRangeEnd40 || "24Guest130"}
+          </span>
+          <span className="text-[11px] font-bold text-indigo-700 mt-0.5">
+            Upload limit: Max 40 guests per batch
           </span>
         </div>
       </div>

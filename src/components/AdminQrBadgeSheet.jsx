@@ -157,15 +157,15 @@ const AdminQrBadgeSheet = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-              <h2 className="text-xl font-extrabold text-slate-900">
-                Official QR Code Badge & Pass Generator
+              <h2 className="text-xl font-extrabold text-purple-950">
+                Print Guest Passes & QR Badges
               </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold border border-purple-200">
-                Authoritative Badges
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 font-extrabold border border-purple-200">
+                Print Cards
               </span>
             </div>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              Generate, preview, and print physical attendee badge sheets with scannable QR tokens for event gate entry.
+            <p className="text-xs md:text-sm font-bold text-gray-700 mt-1">
+              Print physical attendee passes or sheets with QR codes for scanning at entrance gates.
             </p>
           </div>
 

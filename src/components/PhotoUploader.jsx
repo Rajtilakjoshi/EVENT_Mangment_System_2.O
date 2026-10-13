@@ -287,40 +287,22 @@ const PhotoUploader = () => {
                     >
                         <input
                             type="text"
-                            placeholder="⌨️ Enter Token ID (e.g. 24Dummy001)"
+                            placeholder="Type Pass Number (e.g. 24A001)..."
                             value={manualTokenInput}
                             onChange={(e) => setManualTokenInput(e.target.value)}
-                            className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-purple-600 bg-white"
+                            className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-purple-200 focus:outline-none focus:border-purple-600 bg-white shadow-sm"
                         />
                         <button
                             type="submit"
                             disabled={isSearching || !manualTokenInput.trim()}
-                            className="px-4 py-2 bg-purple-700 hover:bg-purple-800 disabled:bg-slate-300 text-white rounded-xl text-xs font-semibold transition"
+                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-300 text-white rounded-xl text-xs font-bold transition shadow-md"
                         >
-                            {isSearching ? "Searching…" : "Lookup"}
+                            {isSearching ? "Searching…" : "Find Pass"}
                         </button>
                     </form>
 
-                    {/* Quick test pills */}
-                    <div className="flex items-center gap-2 pt-1 text-xs text-slate-500 flex-wrap">
-                        <span>Quick Test:</span>
-                        {["24Dummy001", "24Dummy002", "24Dummy003"].map(t => (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => {
-                                    setManualTokenInput(t);
-                                    lookupAttendee(t);
-                                }}
-                                className="px-2 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded font-mono font-medium text-[11px]"
-                            >
-                                {t}
-                            </button>
-                        ))}
-                    </div>
-
-                    {cameraError && <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">{cameraError}</div>}
-                    {uploadError && <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">{uploadError}</div>}
+                    {cameraError && <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">{cameraError}</div>}
+                    {uploadError && <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold">{uploadError}</div>}
                 </div>
             )}
 
@@ -538,12 +520,12 @@ const PhotoUploader = () => {
                             type="button"
                             onClick={handleSaveToMongoDB}
                             disabled={uploading || (!facePhoto && !docPhoto)}
-                            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2"
                         >
                             {uploading ? (
-                                <span>⏳ Uploading & Linking to MongoDB Atlas…</span>
+                                <span>⏳ Saving Photos to Cloud Storage…</span>
                             ) : (
-                                <span>💾 Save Photos to Attendee Record (MongoDB)</span>
+                                <span>💾 Save Guest Photos</span>
                             )}
                         </button>
                     </div>

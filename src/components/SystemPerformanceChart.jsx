@@ -31,27 +31,27 @@ const SystemPerformanceChart = ({ latencyHistory = [], currentLatency = 15 }) =>
 
   // Performance classification: Constant vs Lacking
   let statusBadge = {
-    label: "Constant & Smooth",
-    tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    label: "Fast & Smooth",
+    tone: "bg-emerald-100 text-emerald-900 border-emerald-300 font-extrabold",
     dot: "bg-emerald-500",
-    desc: "Sub-50ms optimal latency. Zero scanner lag detected.",
+    desc: "Scanning is fast and smooth. No delays detected.",
     isLagging: false,
   };
 
   if (currentLatency > 120 || avgLatency > 100) {
     statusBadge = {
-      label: "Lacking / High Latency",
-      tone: "bg-rose-50 text-rose-700 border-rose-200",
+      label: "Slow Network Detected",
+      tone: "bg-rose-100 text-rose-900 border-rose-300 font-extrabold",
       dot: "bg-rose-500 animate-ping",
-      desc: "Response latency spiking >100ms. Check venue Wi-Fi or DB queries.",
+      desc: "Network is taking longer than usual. Please check Wi-Fi connection.",
       isLagging: true,
     };
   } else if (currentLatency > 50 || avgLatency > 50) {
     statusBadge = {
-      label: "Minor Fluctuation",
-      tone: "bg-amber-50 text-amber-800 border-amber-200",
+      label: "Normal Response Speed",
+      tone: "bg-amber-100 text-amber-900 border-amber-300 font-extrabold",
       dot: "bg-amber-500",
-      desc: "Normal venue network variation. Acceptable scanner throughput.",
+      desc: "Normal venue network variation. Scanners working well.",
       isLagging: false,
     };
   }
@@ -94,16 +94,16 @@ const SystemPerformanceChart = ({ latencyHistory = [], currentLatency = 15 }) =>
         <div>
           <div className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-full ${statusBadge.dot}`}></span>
-            <h3 className="text-base font-bold text-slate-900">
-              Website & API Latency Monitor
+            <h3 className="text-base font-extrabold text-purple-950">
+              System Speed & Network Health
             </h3>
             <span
-              className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${statusBadge.tone}`}
+              className={`text-xs px-2.5 py-0.5 rounded-full font-extrabold border ${statusBadge.tone}`}
             >
               {statusBadge.label}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">{statusBadge.desc}</p>
+          <p className="text-xs font-bold text-gray-700 mt-0.5">{statusBadge.desc}</p>
         </div>
 
         {/* Live Gauges */}

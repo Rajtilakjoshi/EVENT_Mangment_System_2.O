@@ -191,15 +191,15 @@ const GuestDirectoryPdfPreview = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-              <h2 className="text-xl font-extrabold text-slate-900">
-                Authoritative Guest Directory & PDF Report Preview
+              <h2 className="text-xl font-extrabold text-purple-950">
+                Guest Directory & Attendance Report
               </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold border border-purple-200">
-                Auto-sync: 2 min
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 font-extrabold border border-purple-200">
+                Auto-syncs every 2 min
               </span>
             </div>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              Live manifest with photos & clickable document links. PDF preview updates every 2 minutes.
+            <p className="text-xs md:text-sm font-bold text-gray-700 mt-1">
+              Live guest roster with entry status, photos, and print-ready report export.
             </p>
           </div>
 

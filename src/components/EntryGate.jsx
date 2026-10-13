@@ -62,14 +62,14 @@ const EntryGateScanner = () => {
             playWarningChime();
             setStatusBanner({
               type: "warning",
-              message: `⚠️ ALREADY CHECKED IN (First entry: ${result.firstCheckedInAt ? new Date(result.firstCheckedInAt).toLocaleTimeString() : "Recorded"})`,
+              message: `⚠️ ALREADY ENTERED! (First entered at: ${result.firstCheckedInAt ? new Date(result.firstCheckedInAt).toLocaleTimeString() : "Recorded earlier"})`,
             });
             // Don't auto-reset immediately so guard can verify potential badge sharing
           } else {
             playSuccessChime();
             setStatusBanner({
               type: "success",
-              message: "✅ ENTRY VERIFIED & RECORDED",
+              message: "✅ WELCOME! ENTRY APPROVED & RECORDED",
             });
             // Auto-advance line after 2 seconds
             autoResetTimerRef.current = setTimeout(reset, 2000);
@@ -80,7 +80,7 @@ const EntryGateScanner = () => {
         if (result.status === 404) {
           playWarningChime();
           setShowQrScannerEntry(false);
-          setErrorMsg("❌ UNREGISTERED BADGE — Please direct guest to Registration Desk.");
+          setErrorMsg("❌ PASS NOT FOUND — Please send guest to Registration Help Desk.");
           return;
         }
 
@@ -205,31 +205,31 @@ const EntryGateScanner = () => {
     <div className="w-full max-w-md mx-auto">
       {/* Auto Check-in Toggle Header */}
       <div className="flex items-center justify-between mb-3 px-1">
-        <span className="text-xs font-semibold text-slate-700">Entry Gate Check-In</span>
-        <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-purple-800">
+        <span className="text-xs font-bold text-purple-950 uppercase tracking-wide">Main Entry Gate Check-In</span>
+        <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-purple-800">
           <input
             type="checkbox"
             checked={autoCheckIn}
             onChange={(e) => setAutoCheckIn(e.target.checked)}
             className="rounded text-purple-600 focus:ring-purple-500"
           />
-          <span>Fast Auto-Check-in</span>
+          <span>Fast Auto-Entry</span>
         </label>
       </div>
 
       {showQrScannerEntry && (
         <div>
-          <div className="relative overflow-hidden rounded-xl bg-slate-900 shadow">
+          <div className="relative overflow-hidden rounded-2xl bg-slate-950 shadow-lg border-2 border-purple-200">
             <QrReader
               delay={300}
-              onError={() => setErrorMsg("Camera access error. Check permissions.")}
+              onError={() => setErrorMsg("Camera access error. Please allow camera permissions in browser settings.")}
               onScan={handleScan}
               style={{ width: "100%" }}
               constraints={{ video: { facingMode: "environment" } }}
             />
-            <div className="absolute bottom-2 inset-x-0 text-center">
-              <span className="bg-slate-900/80 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
-                {isProcessing ? "Verifying badge…" : "Align QR Code within frame"}
+            <div className="absolute bottom-3 inset-x-0 text-center">
+              <span className="bg-slate-900/90 text-white text-xs font-bold px-4 py-1.5 rounded-full backdrop-blur-md shadow">
+                {isProcessing ? "Checking pass…" : "Point camera at Guest QR Pass"}
               </span>
             </div>
           </div>
@@ -245,16 +245,16 @@ const EntryGateScanner = () => {
           >
             <input
               type="text"
-              placeholder="⌨️ Enter Test Token (e.g. 24Dummy001)"
+              placeholder="Enter Pass Number if QR is damaged..."
               value={manualTokenInput}
               onChange={(e) => setManualTokenInput(e.target.value)}
-              className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-purple-600 bg-white"
+              className="flex-1 px-3 py-2 text-xs font-bold rounded-xl border border-purple-200 focus:outline-none focus:border-purple-600 bg-white shadow-sm"
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-semibold transition"
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md"
             >
-              Simulate Scan
+              Check Pass
             </button>
           </form>
         </div>
@@ -307,13 +307,13 @@ const EntryGateScanner = () => {
                   </div>
                 )}
                 <div className="text-center mt-3">
-                  <h3 className="font-bold text-lg text-slate-900">
+                  <h3 className="font-extrabold text-xl text-purple-950">
                     {userData.name?.firstName} {userData.name?.lastName}
                   </h3>
-                  <div className="inline-block bg-purple-50 text-purple-700 text-xs font-mono font-bold px-2 py-0.5 rounded mt-1">
-                    Token: {scannedToken}
+                  <div className="inline-block bg-purple-100 text-purple-900 text-xs font-mono font-extrabold px-3 py-1 rounded-full mt-1 border border-purple-200">
+                    Pass Number: {scannedToken}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Phone: {userData.phoneNumber || "—"}</p>
+                  <p className="text-xs font-bold text-gray-700 mt-1">Phone: {userData.phoneNumber || "—"}</p>
                 </div>
               </div>
 
@@ -322,17 +322,17 @@ const EntryGateScanner = () => {
                   <button
                     type="button"
                     disabled={isProcessing}
-                    className="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2.5 rounded-xl disabled:opacity-50 transition"
+                    className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold py-2.5 rounded-xl disabled:opacity-50 transition shadow-md"
                     onClick={() => manualConfirmEntry(scannedToken)}
                   >
-                    Confirm Entry
+                    Approve Entry
                   </button>
                   <button
                     type="button"
-                    className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition"
+                    className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-800 font-bold hover:bg-slate-50 transition"
                     onClick={reset}
                   >
-                    Rescan
+                    Cancel / Rescan
                   </button>
                 </div>
               )}
@@ -340,10 +340,10 @@ const EntryGateScanner = () => {
               {autoCheckIn && (
                 <button
                   type="button"
-                  className="w-full mt-2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition"
+                  className="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-sm transition shadow-md"
                   onClick={reset}
                 >
-                  Scan Next Guest ➔
+                  Next Guest ➔
                 </button>
               )}
             </>
@@ -352,10 +352,10 @@ const EntryGateScanner = () => {
           {!userData && (
             <button
               type="button"
-              className="w-full py-2.5 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-700 transition"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-sm hover:from-purple-700 hover:to-indigo-700 transition shadow-md"
               onClick={reset}
             >
-              Scan Next ➔
+              Scan Next Pass ➔
             </button>
           )}
         </div>

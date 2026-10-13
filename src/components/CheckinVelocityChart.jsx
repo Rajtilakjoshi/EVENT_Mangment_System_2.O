@@ -58,15 +58,15 @@ const CheckinVelocityChart = ({ timeline = [], totalCheckedIn = 0 }) => {
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <h3 className="text-base font-bold text-slate-900">
-              5-Minute Guest Check-in Velocity
+            <h3 className="text-base font-extrabold text-purple-950">
+              Guest Entry Speed (Every 5 Minutes)
             </h3>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
-              Entry vs Time
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold border border-emerald-300">
+              Entries Over Time
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Aggregated arrivals in 5-minute rolling buckets across entry gates
+          <p className="text-xs font-bold text-gray-700 mt-0.5">
+            How many attendees entered the gates every 5 minutes
           </p>
         </div>
 

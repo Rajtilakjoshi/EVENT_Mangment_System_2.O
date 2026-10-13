@@ -60,13 +60,13 @@ const TokenFinder = ({ onClose }) => {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
       {/* Search Header Banner */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200/80 rounded-2xl p-4 shadow-sm">
-        <div className="text-xs font-bold text-purple-900 mb-2 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <span>🔍 Universal Attendee & Token Search</span>
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-4 shadow-sm">
+        <div className="text-xs font-bold text-purple-950 mb-2 flex items-center justify-between">
+          <span className="flex items-center gap-1.5 font-extrabold text-sm text-purple-950">
+            <span>🔍 Search Guest Pass & Attendance Status</span>
           </span>
-          <span className="text-[11px] text-purple-600 font-normal">
-            Matches Name • Phone • Token • Email
+          <span className="text-[11px] text-purple-700 font-bold">
+            Search by Name • Mobile • Pass ID
           </span>
         </div>
 
@@ -84,10 +84,10 @@ const TokenFinder = ({ onClose }) => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by First/Last Name, Mobile Number, or Token ID…"
-              className="w-full pl-9 pr-8 py-2.5 bg-white border border-purple-300 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+              placeholder="Type guest name, phone number, or pass number…"
+              className="w-full pl-9 pr-8 py-2.5 bg-white border border-purple-300 rounded-xl text-xs sm:text-sm font-bold text-purple-950 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
             />
-            <span className="absolute left-3 top-3 text-slate-400 text-xs">🔍</span>
+            <span className="absolute left-3 top-3 text-purple-500 text-xs">🔍</span>
             {searchTerm && (
               <button
                 type="button"
@@ -107,29 +107,11 @@ const TokenFinder = ({ onClose }) => {
           <button
             type="submit"
             disabled={isLoading || !searchTerm.trim()}
-            className="px-5 py-2.5 bg-purple-700 hover:bg-purple-800 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+            className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-300 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center gap-1.5"
           >
-            {isLoading ? <span>Searching…</span> : <span>Search</span>}
+            {isLoading ? <span>Searching…</span> : <span>Find Guest</span>}
           </button>
         </form>
-
-        {/* Quick Suggestion Pills */}
-        <div className="flex items-center gap-1.5 pt-2.5 text-xs text-slate-500 flex-wrap">
-          <span className="text-[11px] text-slate-400 font-medium">Quick examples:</span>
-          {["Archana", "Khan", "9403201713", "24Dummy005"].map((pill) => (
-            <button
-              key={pill}
-              type="button"
-              onClick={() => {
-                setSearchTerm(pill);
-                handleSearch(pill);
-              }}
-              className="px-2 py-0.5 bg-white hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-md font-mono text-[11px] font-medium transition shadow-2xs"
-            >
-              {pill}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Error Message */}
@@ -158,11 +140,11 @@ const TokenFinder = ({ onClose }) => {
 
           {/* Empty State */}
           {results.length === 0 && !isLoading && (
-            <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-300 rounded-2xl">
               <div className="text-3xl mb-2">🔍</div>
-              <h4 className="text-xs font-bold text-slate-700">No match for "{searchTerm}"</h4>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
-                Try searching with just their 10-digit mobile number, first name, or token number (e.g. 24Dummy001).
+              <h4 className="text-xs font-bold text-slate-800">No match for "{searchTerm}"</h4>
+              <p className="text-[11px] font-bold text-slate-600 mt-1 max-w-sm mx-auto">
+                Try searching with just their 10-digit mobile number, first name, or pass number.
               </p>
             </div>
           )}
@@ -264,9 +246,9 @@ const TokenFinder = ({ onClose }) => {
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[10px] text-slate-400 font-semibold block">Token ID</span>
-                  <span className="font-mono font-bold text-purple-800">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-purple-100">
+                  <span className="text-[10px] text-purple-700 font-bold block">Pass Number</span>
+                  <span className="font-mono font-extrabold text-purple-950">
                     {selectedUser.token}
                   </span>
                 </div>
