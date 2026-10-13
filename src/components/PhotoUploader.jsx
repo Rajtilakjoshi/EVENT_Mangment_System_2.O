@@ -313,18 +313,11 @@ const PhotoUploader = () => {
                     <div className="flex items-center justify-between p-3.5 bg-purple-50 border border-purple-200 rounded-xl">
                         <div>
                             <div className="text-xs font-bold text-purple-950 flex items-center gap-1.5">
-                                <span>👤 {userData.name?.firstName} {userData.name?.middleName || ""} {userData.name?.lastName}</span>
-                                <span className="bg-purple-200 text-purple-800 font-mono text-[11px] px-2 py-0.5 rounded-md">{scannedToken}</span>
+                                <span>{userData.name?.firstName} {userData.name?.middleName || ""} {userData.name?.lastName}</span>
+                                <span className="bg-purple-200 text-purple-900 font-mono text-[11px] font-bold px-2 py-0.5 rounded-md">{scannedToken}</span>
                             </div>
-                            <div className="text-[11px] text-slate-600 mt-0.5">📞 {userData.phoneNumber || "No phone"} • Age: {userData.age || "N/A"}</div>
+                            <div className="text-[11px] font-bold text-gray-700 mt-0.5">Phone: {userData.phoneNumber || "No phone"} • Age: {userData.age || "N/A"}</div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={resetAll}
-                            className="text-xs text-purple-700 hover:text-purple-900 font-semibold px-2.5 py-1 rounded-lg border border-purple-300 hover:bg-purple-100 transition"
-                        >
-                            🔄 Switch Attendee
-                        </button>
                     </div>
 
                     {/* CAMERA VIEWFINDER (SEAMLESS 2-STEP FLOW) */}

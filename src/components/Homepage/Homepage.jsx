@@ -9,20 +9,20 @@ import { updateSheet } from "../../utils/apiUtils";
 
 const dashboardButtons = [
   [
-    { icon: FaCamera, label: '📷 Guest Photo Uploader', sub: 'Take Face & ID Card Photos', action: 'toggleCamera' },
-    { icon: FaQrcode, label: '🚪 Main Entry Gate', sub: 'Scan Guest QR Pass to Enter', action: 'entryGate' }
+    { icon: FaCamera, label: 'Photo Uploader', sub: 'Take Face & ID Photos', action: 'toggleCamera' },
+    { icon: FaQrcode, label: 'Main Entry Gate', sub: 'Scan Pass to Enter', action: 'entryGate' }
   ],
   [
-    { icon: FaCoffee, label: '🍲 Food / Prasad Counter 1', sub: 'Scan Pass for Counter 1', action: 'scanPrasad1' },
-    { icon: FaCoffee, label: '🍲 Food / Prasad Counter 2', sub: 'Scan Pass for Counter 2', action: 'scanPrasad2' }
+    { icon: FaCoffee, label: 'Prasad 1', sub: 'Scan Pass for Counter 1', action: 'scanPrasad1' },
+    { icon: FaCoffee, label: 'Prasad 2', sub: 'Scan Pass for Counter 2', action: 'scanPrasad2' }
   ],
   [
-    { icon: FaCoffee, label: '🍲 Food / Prasad Counter 3', sub: 'Scan Pass for Counter 3', action: 'scanPrasad3' },
-    { icon: FaSearch, label: '🔍 Search Guest Details', sub: 'Find by Name or Mobile No.', action: 'showTokenFinder' }
+    { icon: FaCoffee, label: 'Prasad 3', sub: 'Scan Pass for Counter 3', action: 'scanPrasad3' },
+    { icon: FaSearch, label: 'Search Guest Details', sub: 'Find by Name or Mobile No.', action: 'showTokenFinder' }
   ],
   [
-    { icon: FaSync, label: '📊 Update Google Sheet', sub: 'Refresh All 6 Sheet Tabs', action: 'updateSheet' },
-    { icon: FaChartBar, label: '👑 Admin Dashboard', sub: 'Reports, Batches & Passes', action: 'adminMonitor' }
+    { icon: FaSync, label: 'Update Google Sheet', sub: 'Refresh All 6 Sheet Tabs', action: 'updateSheet' },
+    { icon: FaChartBar, label: 'Admin Dashboard', sub: 'Reports, Batches & Passes', action: 'adminMonitor' }
   ]
 ];
 
@@ -111,23 +111,23 @@ const Homepage = () => {
         </div>
       )}
 
-      <ModalWrapper isOpen={showEntryGateScanner} onClose={() => setShowEntryGateScanner(false)} title="🚪 Main Entry Gate Check-In">
+      <ModalWrapper isOpen={showEntryGateScanner} onClose={() => setShowEntryGateScanner(false)} title="Main Entry Gate Check-In">
         <EntryGateScanner setShowEntryGateScanner={setShowEntryGateScanner} />
       </ModalWrapper>
 
       <ModalWrapper
         isOpen={showQrScannerComponent}
         onClose={() => setShowQrScannerComponent(false)}
-        title={`🍲 Food / Prasad Counter ${prasadType.replace('prasad', '')} Scanner`}
+        title={`Prasad ${prasadType.replace('prasad', '')} Scanner`}
       >
         <QrScannerComponent prasadType={prasadType} setShowQrScannerComponent={setShowQrScannerComponent} />
       </ModalWrapper>
 
-      <ModalWrapper isOpen={showTokenFinder} onClose={() => setShowTokenFinder(false)} title="🔍 Search Guest Pass & Details">
+      <ModalWrapper isOpen={showTokenFinder} onClose={() => setShowTokenFinder(false)} title="Search Guest Pass & Details">
         <TokenFinder onClose={() => setShowTokenFinder(false)} />
       </ModalWrapper>
 
-      <ModalWrapper isOpen={showCamera} onClose={() => setShowCamera(false)} title="📷 Take Guest Photos (Face & ID Card)">
+      <ModalWrapper isOpen={showCamera} onClose={() => setShowCamera(false)} title="Guest Photo Uploader">
         <PhotoUploader />
       </ModalWrapper>
     </div>
