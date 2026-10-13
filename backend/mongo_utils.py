@@ -26,12 +26,24 @@ if not MONGO_URI:
     logger.warning("MONGO_URI not set — defaulting to local mongodb://localhost:27017/divine_dashboard_2026")
     MONGO_URI = "mongodb://localhost:27017/divine_dashboard_2026"
 
+try:
+    import certifi
+    _ca_file = certifi.where()
+except Exception:
+    _ca_file = None
+
+_mongo_kwargs = {
+    "serverSelectionTimeoutMS": 10000,
+    "maxPoolSize": 50,
+    "minPoolSize": 10,
+    "maxIdleTimeMS": 30000,
+}
+if _ca_file and "mongodb+srv" in (MONGO_URI or ""):
+    _mongo_kwargs["tlsCAFile"] = _ca_file
+
 client = MongoClient(
     MONGO_URI,
-    serverSelectionTimeoutMS=5000,
-    maxPoolSize=50,
-    minPoolSize=10,
-    maxIdleTimeMS=30000,
+    **_mongo_kwargs,
 )
 db = client[os.environ.get("MONGO_DB", "divine_dashboard_2026")]
 guests_collection = db["guests"]

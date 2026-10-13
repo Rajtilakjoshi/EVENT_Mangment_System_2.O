@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import QrReader from "react-qr-scanner";
 import { apiFetch, fastCheckin, scanGuest } from "../utils/apiUtils";
 import { cacheGuest, getCachedGuest, patchCachedStatus } from "../utils/guestCache";
@@ -296,7 +296,7 @@ const EntryGateScanner = () => {
                 {photoUrl ? (
                   <img
                     src={photoUrl}
-                    alt="Guest Photo"
+                    alt="Guest"
                     loading="lazy"
                     decoding="async"
                     className="w-32 h-32 object-cover rounded-2xl shadow border-2 border-purple-200 bg-slate-100"

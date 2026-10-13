@@ -11,6 +11,7 @@ WORKDIR /app
 # Install minimal OS dependencies if needed
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency requirements

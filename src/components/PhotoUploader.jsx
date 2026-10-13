@@ -118,9 +118,6 @@ const PhotoUploader = () => {
             if (streamInstance) {
                 streamInstance.getTracks().forEach(t => t.stop());
             }
-            if (videoRef.current?.srcObject) {
-                videoRef.current.srcObject.getTracks().forEach(t => t.stop());
-            }
         };
     }, [activeCameraTarget, showQrScanner]);
 
