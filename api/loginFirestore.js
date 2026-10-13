@@ -1,10 +1,10 @@
 // Vercel/Node.js API route for Firestore-based login and first-login password reset
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 let serviceAccountCache = null;
 
@@ -38,10 +38,14 @@ function getDb() {
     throw new Error('Firebase Service Account configuration is missing');
   }
   if (!global._firebaseApp) {
-    global._firebaseApp = initializeApp({
-      credential: cert(sa),
-      projectId: sa.project_id || 'divine-36910',
-    });
+    if (getApps().length > 0) {
+      global._firebaseApp = getApps()[0];
+    } else {
+      global._firebaseApp = initializeApp({
+        credential: cert(sa),
+        projectId: sa.project_id || 'divine-36910',
+      });
+    }
   }
   return getFirestore();
 }
@@ -59,9 +63,17 @@ function getTransporter() {
   });
 }
 
-const BCRYPT_ROUNDS = 12;
+function verifyPassword(inputPassword, storedPassword) {
+  if (!storedPassword || !inputPassword) return false;
+  // Match plaintext directly
+  if (String(storedPassword) === String(inputPassword)) return true;
+  // Match sha256 hash if applicable
+  const hash = crypto.createHash('sha256').update(String(inputPassword)).digest('hex');
+  if (String(storedPassword).toLowerCase() === hash.toLowerCase()) return true;
+  return false;
+}
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers so browser requests are never blocked
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -103,8 +115,7 @@ export default async function handler(req, res) {
     // Forgot password flow — generate temporary password & email it
     if (forgot) {
       const tempPassword = `divine@${Math.floor(100 + Math.random() * 900)}`;
-      const hashedTemp = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
-      await userDoc.ref.update({ password: hashedTemp, firstLogin: true });
+      await userDoc.ref.update({ password: tempPassword, firstLogin: true });
 
       let emailSent = false;
       try {
@@ -129,7 +140,6 @@ export default async function handler(req, res) {
           message: `Temporary password sent to ${cleanEmail}. Please check your inbox.`,
         });
       } else {
-        // Safe fallback if SMTP fails
         return res.status(200).json({
           success: true,
           message: `Email delivery unavailable. Temporary password: ${tempPassword}`,
@@ -138,18 +148,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Password verification — support both legacy plaintext and bcrypt hashes
-    let passwordValid = false;
-    if (user.password && user.password.startsWith('$2')) {
-      passwordValid = await bcrypt.compare(password, user.password);
-    } else {
-      passwordValid = (user.password === password);
-      if (passwordValid) {
-        // Upgrade legacy plaintext password to bcrypt hash
-        const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
-        await userDoc.ref.update({ password: hashed });
-      }
-    }
+    // Password verification
+    const passwordValid = verifyPassword(password, user.password);
 
     if (!passwordValid) {
       return res.status(400).json({ error: 'Invalid password. Please check and try again.' });
@@ -160,8 +160,7 @@ export default async function handler(req, res) {
       if (!newPassword) {
         return res.status(200).json({ firstLogin: true });
       }
-      const hashedNew = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-      const updateData = { password: hashedNew, firstLogin: false };
+      const updateData = { password: String(newPassword), firstLogin: false };
       if (user.role === 'admin') {
         updateData.authorized = true;
       }
@@ -180,4 +179,4 @@ export default async function handler(req, res) {
     console.error('Login error:', err);
     return res.status(500).json({ error: err.message || 'Internal login error' });
   }
-}
+};

@@ -1,10 +1,9 @@
 // Vercel/Node.js API route for registration with Firestore and email notification
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 let serviceAccountCache = null;
 
@@ -38,10 +37,14 @@ function getDb() {
     throw new Error('Firebase Service Account configuration is missing');
   }
   if (!global._firebaseApp) {
-    global._firebaseApp = initializeApp({
-      credential: cert(sa),
-      projectId: sa.project_id || 'divine-36910',
-    });
+    if (getApps().length > 0) {
+      global._firebaseApp = getApps()[0];
+    } else {
+      global._firebaseApp = initializeApp({
+        credential: cert(sa),
+        projectId: sa.project_id || 'divine-36910',
+      });
+    }
   }
   return getFirestore();
 }
@@ -59,9 +62,7 @@ function getTransporter() {
   });
 }
 
-const BCRYPT_ROUNDS = 12;
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -91,10 +92,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email already registered in system' });
     }
 
-    const hashedPassword = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
     await db.collection('users').add({
       email: cleanEmail,
-      password: hashedPassword,
+      password: tempPassword,
       role,
       name: name.trim(),
       phone: phone.trim(),
@@ -132,4 +132,4 @@ export default async function handler(req, res) {
     console.error('Registration error:', err);
     return res.status(500).json({ error: err.message || 'Internal registration error' });
   }
-}
+};
