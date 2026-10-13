@@ -5,11 +5,15 @@ import { getAllGuests } from "../utils/apiUtils";
  * AdminQrBadgeSheet:
  * Generates printable physical QR Code stickers & attendee passes.
  * Supports:
- * - 4cm x 4cm sticker layout with vertical sideways attendee name, central QR, and bottom token number
+ * - 4cm x 4cm sticker layout with vertical sideways attendee name (no phone number)
+ * - Sharp (0px) vs Curved (6px/10px) boundary corners
+ * - Adjustable name size (Tiny 6.5px to Normal 9.5px) to maximize QR space
+ * - Adjustable QR code size (Large 28mm to Max 30.5mm)
+ * - Adjustable Token / Pass number size (11px to 15px bold monospace)
  * - Customizable columns per row (2 to 6 per row)
  * - Customizable separation gap between stickers (0mm to 12mm)
  * - Thicker cutting boundary borders (1.5px to 3px solid or dashed)
- * - Instant live screen preview and 100% accurate A4 print output via window.print()
+ * - 100% accurate A4 print output via window.print()
  */
 const AdminQrBadgeSheet = () => {
   const [guests, setGuests] = useState([]);
@@ -24,8 +28,11 @@ const AdminQrBadgeSheet = () => {
   const [colsPerRow, setColsPerRow] = useState(4); // Number of QR stickers in each row (default 4)
   const [gapMm, setGapMm] = useState(3); // Separation gap between stickers in mm
   const [borderThickness, setBorderThickness] = useState("2px"); // Boundary thickness: "1.5px" | "2px" | "2.5px" | "3px" | "dashed"
+  const [cornerStyle, setCornerStyle] = useState("sharp"); // "sharp" (0px) | "curved" (6px) | "extra_curved" (10px)
   const [namePosition, setNamePosition] = useState("left"); // "left" | "right" | "none"
-  const [cornerStyle, setCornerStyle] = useState("square"); // "square" (cut lines) | "rounded"
+  const [nameFontSize, setNameFontSize] = useState("7.5px"); // "6.5px" | "7.5px" | "8.5px" | "9.5px"
+  const [qrSizePreset, setQrSizePreset] = useState("max"); // "normal" (25mm) | "large" (28mm) | "max" (30mm)
+  const [tokenFontSize, setTokenFontSize] = useState("13px"); // "11px" | "13px" | "15px"
 
   const fetchGuests = useCallback(async () => {
     setLoading(true);
@@ -68,21 +75,31 @@ const AdminQrBadgeSheet = () => {
       setColsPerRow(4);
       setGapMm(3);
       setBorderThickness("2px");
+      setCornerStyle("sharp");
       setNamePosition("left");
+      setNameFontSize("7.5px");
+      setQrSizePreset("max");
+      setTokenFontSize("13px");
     } else if (layout === "sticker5x5") {
       setColsPerRow(3);
       setGapMm(4);
       setBorderThickness("2px");
+      setCornerStyle("sharp");
       setNamePosition("left");
+      setNameFontSize("8.5px");
+      setQrSizePreset("max");
+      setTokenFontSize("14px");
     } else if (layout === "standard") {
       setColsPerRow(2);
       setGapMm(6);
       setBorderThickness("1.5px");
+      setCornerStyle("curved");
       setNamePosition("none");
     } else if (layout === "compact") {
       setColsPerRow(3);
       setGapMm(4);
       setBorderThickness("1.5px");
+      setCornerStyle("sharp");
       setNamePosition("none");
     }
   };
@@ -101,8 +118,7 @@ const AdminQrBadgeSheet = () => {
       result = result.filter((g) => {
         const name = formatFullName(g).toLowerCase();
         const token = (g.token || "").toLowerCase();
-        const phone = (g.phoneNumber || "").toLowerCase();
-        return name.includes(q) || token.includes(q) || phone.includes(q);
+        return name.includes(q) || token.includes(q);
       });
     }
 
@@ -144,6 +160,13 @@ const AdminQrBadgeSheet = () => {
     return `${borderThickness} solid #0f172a`;
   }, [borderThickness]);
 
+  // Border radius CSS string for sharp vs curved corners
+  const computedBorderRadius = useMemo(() => {
+    if (cornerStyle === "sharp") return "0px";
+    if (cornerStyle === "extra_curved") return "10px";
+    return "6px"; // "curved"
+  }, [cornerStyle]);
+
   // Card dimensions in mm
   const cardDimensions = useMemo(() => {
     if (badgeLayout === "sticker4x4") return { width: "40mm", height: "40mm" };
@@ -151,6 +174,27 @@ const AdminQrBadgeSheet = () => {
     if (badgeLayout === "compact") return { width: "63mm", height: "42mm" };
     return { width: "88mm", height: "62mm" };
   }, [badgeLayout]);
+
+  // Name Strip Width in mm based on font size to maximize QR space
+  const nameStripWidthMm = useMemo(() => {
+    if (nameFontSize === "6.5px") return 5.0;
+    if (nameFontSize === "7.5px") return 5.8;
+    if (nameFontSize === "8.5px") return 6.8;
+    return 7.8;
+  }, [nameFontSize]);
+
+  // QR Image Size in mm
+  const qrImageSizeMm = useMemo(() => {
+    if (badgeLayout === "sticker5x5") {
+      if (qrSizePreset === "max") return "38mm";
+      if (qrSizePreset === "large") return "35mm";
+      return "32mm";
+    }
+    // sticker4x4
+    if (qrSizePreset === "max") return "29.5mm";
+    if (qrSizePreset === "large") return "27.5mm";
+    return "25mm";
+  }, [badgeLayout, qrSizePreset]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-purple-100 p-4 md:p-6">
@@ -187,7 +231,7 @@ const AdminQrBadgeSheet = () => {
             box-shadow: none !important;
             background: white !important;
             border: ${computedBorder} !important;
-            border-radius: ${cornerStyle === "rounded" ? "4px" : "0px"} !important;
+            border-radius: ${computedBorderRadius} !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -213,7 +257,7 @@ const AdminQrBadgeSheet = () => {
               </span>
             </div>
             <p className="text-xs md:text-sm font-bold text-gray-700 mt-1">
-              Print official 4×4 cm QR stickers or attendee badges. Adjust stickers per row, spacing gap, and cutting boundaries.
+              Print official 4×4 cm QR stickers. Large QR, prominent Pass Number, small sideways name, sharp or curved boundary.
             </p>
           </div>
 
@@ -297,16 +341,16 @@ const AdminQrBadgeSheet = () => {
 
             {/* Quick helper badge */}
             <div className="text-xs font-bold text-purple-900 bg-white px-3 py-1 rounded-lg border border-purple-200">
-              Pass Dimensions: <span className="font-extrabold text-purple-950">{cardDimensions.width} × {cardDimensions.height}</span>
+              Sticker Size: <span className="font-extrabold text-purple-950">{cardDimensions.width} × {cardDimensions.height}</span>
             </div>
           </div>
 
-          {/* Toolbar Section 2: Detailed Customizations (Rows, Gap, Border, Name) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-purple-100 text-xs">
+          {/* Toolbar Section 2: Detailed Customizations (Rows, Gap, Border, Corners, Sizes) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 border-t border-purple-100 text-xs">
             {/* 1. Number of QR in each row */}
             <div className="bg-white p-2.5 rounded-lg border border-purple-200">
               <label className="block font-extrabold text-purple-950 mb-1.5">
-                QR in Each Row:
+                QR Codes in Each Row:
               </label>
               <div className="flex items-center gap-1">
                 {[2, 3, 4, 5, 6].map((num) => (
@@ -325,7 +369,7 @@ const AdminQrBadgeSheet = () => {
                 ))}
               </div>
               <span className="block text-[10px] text-gray-500 mt-1 font-bold">
-                {colsPerRow} QR codes per horizontal row
+                {colsPerRow} QR stickers per horizontal line
               </span>
             </div>
 
@@ -349,17 +393,62 @@ const AdminQrBadgeSheet = () => {
                 className="w-full accent-purple-600 cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-gray-500 font-bold mt-1">
-                <span onClick={() => setGapMm(0)} className="cursor-pointer hover:text-purple-700">0mm (Touching)</span>
+                <span onClick={() => setGapMm(0)} className="cursor-pointer hover:text-purple-700 font-bold">0mm (Touching)</span>
                 <span onClick={() => setGapMm(3)} className="cursor-pointer hover:text-purple-700">3mm</span>
                 <span onClick={() => setGapMm(6)} className="cursor-pointer hover:text-purple-700">6mm</span>
                 <span onClick={() => setGapMm(10)} className="cursor-pointer hover:text-purple-700">10mm</span>
               </div>
             </div>
 
-            {/* 3. Cutting Boundary Thickness */}
+            {/* 3. Boundary Corner Style (Sharp vs Curved) */}
             <div className="bg-white p-2.5 rounded-lg border border-purple-200">
               <label className="block font-extrabold text-purple-950 mb-1.5">
-                Cutting Boundary:
+                Boundary Corners (Sharp / Curved):
+              </label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCornerStyle("sharp")}
+                  className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
+                    cornerStyle === "sharp"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
+                  }`}
+                >
+                  ■ Sharp (Square)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCornerStyle("curved")}
+                  className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
+                    cornerStyle === "curved"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
+                  }`}
+                >
+                  ▢ Curved (Rounded)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCornerStyle("extra_curved")}
+                  className={`px-2 py-1 rounded font-extrabold text-xs transition ${
+                    cornerStyle === "extra_curved"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
+                  }`}
+                >
+                  Extra Curved
+                </button>
+              </div>
+              <span className="block text-[10px] text-gray-500 mt-1 font-bold">
+                {cornerStyle === "sharp" ? "Sharp 90° for scissor cutting" : "Curved for rounded peel-off sticker sheets"}
+              </span>
+            </div>
+
+            {/* 4. Cutting Boundary Line Style & Thickness */}
+            <div className="bg-white p-2.5 rounded-lg border border-purple-200">
+              <label className="block font-extrabold text-purple-950 mb-1.5">
+                Boundary Thickness:
               </label>
               <select
                 value={borderThickness}
@@ -372,60 +461,118 @@ const AdminQrBadgeSheet = () => {
                 <option value="1.5px">1.5px Solid (Standard Border)</option>
                 <option value="dashed">2px Dashed (Scissor Cut Line)</option>
               </select>
+              <span className="block text-[10px] text-gray-500 mt-1 font-bold">
+                Dark boundary line for precise cutting
+              </span>
+            </div>
+
+            {/* 5. Attendee Name Size & Placement */}
+            <div className="bg-white p-2.5 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="font-extrabold text-purple-950">
+                  Sideways Name Size:
+                </label>
+                <span className="font-bold text-purple-700 bg-purple-50 px-1 py-0.5 rounded text-[10px]">
+                  No Phone #
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {[
+                  { label: "Tiny", size: "6.5px" },
+                  { label: "Small", size: "7.5px" },
+                  { label: "Medium", size: "8.5px" },
+                  { label: "Normal", size: "9.5px" },
+                ].map((item) => (
+                  <button
+                    key={item.size}
+                    type="button"
+                    onClick={() => setNameFontSize(item.size)}
+                    className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
+                      nameFontSize === item.size
+                        ? "bg-purple-600 text-white"
+                        : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
               <div className="flex items-center justify-between mt-1 text-[10px] text-gray-500 font-bold">
-                <span>Corners:</span>
-                <button
-                  type="button"
-                  onClick={() => setCornerStyle(cornerStyle === "square" ? "rounded" : "square")}
-                  className="text-purple-700 hover:underline"
-                >
-                  {cornerStyle === "square" ? "■ Square (Scissor Cut)" : "▢ Rounded"}
-                </button>
+                <span>Side:</span>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setNamePosition("left")}
+                    className={`px-1.5 py-0.5 rounded ${namePosition === "left" ? "bg-purple-200 text-purple-900 font-extrabold" : "hover:text-purple-700"}`}
+                  >
+                    Left
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNamePosition("right")}
+                    className={`px-1.5 py-0.5 rounded ${namePosition === "right" ? "bg-purple-200 text-purple-900 font-extrabold" : "hover:text-purple-700"}`}
+                  >
+                    Right
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNamePosition("none")}
+                    className={`px-1.5 py-0.5 rounded ${namePosition === "none" ? "bg-purple-200 text-purple-900 font-extrabold" : "hover:text-purple-700"}`}
+                  >
+                    Hide
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* 4. Sidewise Name Placement */}
+            {/* 6. QR Size & Token Number Size */}
             <div className="bg-white p-2.5 rounded-lg border border-purple-200">
               <label className="block font-extrabold text-purple-950 mb-1.5">
-                Vertical Sideways Name:
+                QR & Token Pass Size:
               </label>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setNamePosition("left")}
-                  className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
-                    namePosition === "left"
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
-                  }`}
-                >
-                  Left Side
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNamePosition("right")}
-                  className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
-                    namePosition === "right"
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
-                  }`}
-                >
-                  Right Side
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNamePosition("none")}
-                  className={`flex-1 py-1 rounded font-extrabold text-xs transition ${
-                    namePosition === "none"
-                      ? "bg-purple-600 text-white"
-                      : "bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200"
-                  }`}
-                >
-                  Hide
-                </button>
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <span className="block text-[10px] text-gray-500 font-bold mb-0.5">QR Size:</span>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setQrSizePreset("large")}
+                      className={`flex-1 py-1 rounded font-extrabold text-xs ${qrSizePreset === "large" ? "bg-purple-600 text-white" : "bg-purple-50 text-purple-900 border border-purple-200"}`}
+                    >
+                      Large
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQrSizePreset("max")}
+                      className={`flex-1 py-1 rounded font-extrabold text-xs ${qrSizePreset === "max" ? "bg-purple-600 text-white" : "bg-purple-50 text-purple-900 border border-purple-200"}`}
+                    >
+                      Max (Big)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <span className="block text-[10px] text-gray-500 font-bold mb-0.5">Token Text:</span>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setTokenFontSize("13px")}
+                      className={`flex-1 py-1 rounded font-extrabold text-xs ${tokenFontSize === "13px" ? "bg-purple-600 text-white" : "bg-purple-50 text-purple-900 border border-purple-200"}`}
+                    >
+                      Large
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTokenFontSize("15px")}
+                      className={`flex-1 py-1 rounded font-extrabold text-xs ${tokenFontSize === "15px" ? "bg-purple-600 text-white" : "bg-purple-50 text-purple-900 border border-purple-200"}`}
+                    >
+                      XL (Huge)
+                    </button>
+                  </div>
+                </div>
               </div>
               <span className="block text-[10px] text-gray-500 mt-1 font-bold">
-                Rotated sideways to save space for QR
+                Maximized QR and huge pass number
               </span>
             </div>
           </div>
@@ -455,7 +602,7 @@ const AdminQrBadgeSheet = () => {
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder="Search by pass number, name, phone…"
+              placeholder="Search by pass number or name…"
               className="w-full text-xs font-bold bg-white border border-purple-200 rounded-lg pl-8 pr-3 py-1.5 text-purple-950 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-xs"
             />
             <svg
@@ -504,7 +651,7 @@ const AdminQrBadgeSheet = () => {
             DIVINE ENERGY HUB 2026 — OFFICIAL ATTENDEE QR STICKERS ({cardDimensions.width} × {cardDimensions.height})
           </h1>
           <p className="text-[10px] text-slate-600">
-            Total Selected: {printGuests.length} Passes · Row Layout: {colsPerRow} per row · Gap: {gapMm}mm
+            Total Selected: {printGuests.length} Passes · Row Layout: {colsPerRow} per row · Gap: {gapMm}mm · Boundary: {cornerStyle}
           </p>
         </div>
 
@@ -529,7 +676,7 @@ const AdminQrBadgeSheet = () => {
             {printGuests.map((guest) => {
               const fullName = formatFullName(guest);
               // SVG vector QR code for maximum razor-sharp print clarity
-              const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
+              const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(
                 guest.token || ""
               )}&format=svg`;
 
@@ -547,9 +694,9 @@ const AdminQrBadgeSheet = () => {
                     maxWidth: cardDimensions.width,
                     maxHeight: cardDimensions.height,
                     border: computedBorder,
-                    borderRadius: cornerStyle === "rounded" ? "4px" : "0px",
+                    borderRadius: computedBorderRadius,
                     boxSizing: "border-box",
-                    padding: isSticker ? "1.5mm" : "3mm",
+                    padding: isSticker ? "1.0mm" : "3.0mm",
                     position: "relative",
                     overflow: "hidden",
                   }}
@@ -572,18 +719,18 @@ const AdminQrBadgeSheet = () => {
                         flexDirection: namePosition === "right" ? "row-reverse" : "row",
                       }}
                     >
-                      {/* VERTICAL SIDEWAYS NAME STRIP */}
+                      {/* VERTICAL SIDEWAYS NAME STRIP (NO PHONE NUMBER) */}
                       {namePosition !== "none" && (
                         <div
                           className={`flex items-center justify-center overflow-hidden shrink-0 ${
                             namePosition === "right"
-                              ? "border-l border-dashed border-slate-300 pl-[0.8mm]"
-                              : "border-r border-dashed border-slate-300 pr-[0.8mm]"
+                              ? "border-l border-dashed border-slate-300 pl-[0.5mm]"
+                              : "border-r border-dashed border-slate-300 pr-[0.5mm]"
                           }`}
                           style={{
-                            width: "7.5mm",
-                            minWidth: "7.5mm",
-                            maxWidth: "7.5mm",
+                            width: `${nameStripWidthMm}mm`,
+                            minWidth: `${nameStripWidthMm}mm`,
+                            maxWidth: `${nameStripWidthMm}mm`,
                             height: "100%",
                           }}
                         >
@@ -591,36 +738,31 @@ const AdminQrBadgeSheet = () => {
                             style={{
                               writingMode: "vertical-rl",
                               transform: "rotate(180deg)",
-                              fontSize: "8.5px",
-                              lineHeight: "1.1",
+                              fontSize: nameFontSize,
+                              lineHeight: "1.0",
                               fontWeight: "800",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               color: "#0f172a",
-                              maxHeight: "36mm",
+                              maxHeight: "37mm",
                               letterSpacing: "0.2px",
                             }}
                             title={fullName}
                           >
-                            <span>{fullName}</span>
-                            {guest.phoneNumber ? (
-                              <span style={{ fontWeight: "700", color: "#475569", marginLeft: "2px" }}>
-                                {" "}· {guest.phoneNumber}
-                              </span>
-                            ) : null}
+                            {fullName}
                           </div>
                         </div>
                       )}
 
-                      {/* MAIN QR CODE + TOKEN NUMBER DIRECTLY BELOW IT */}
+                      {/* MAIN QR CODE + LARGE TOKEN NUMBER DIRECTLY BELOW IT */}
                       <div className="flex-1 flex flex-col items-center justify-center overflow-hidden px-[0.5mm]">
-                        {/* High Resolution SVG QR Code */}
+                        {/* High Resolution SVG QR Code (Enlarged) */}
                         <div
                           className="flex items-center justify-center bg-white"
                           style={{
-                            width: badgeLayout === "sticker5x5" ? "32mm" : "26mm",
-                            height: badgeLayout === "sticker5x5" ? "32mm" : "26mm",
+                            width: qrImageSizeMm,
+                            height: qrImageSizeMm,
                           }}
                         >
                           <img
@@ -631,12 +773,12 @@ const AdminQrBadgeSheet = () => {
                           />
                         </div>
 
-                        {/* Token / Pass Number directly below QR */}
-                        <div className="mt-[0.8mm] text-center w-full leading-none">
+                        {/* Token / Pass Number directly below QR (Enlarged & Bold) */}
+                        <div className="mt-[0.6mm] text-center w-full leading-none">
                           <span
                             className="inline-block font-mono font-black text-slate-950 tracking-wider leading-none"
                             style={{
-                              fontSize: badgeLayout === "sticker5x5" ? "12px" : "11px",
+                              fontSize: tokenFontSize,
                               background: "#f1f5f9",
                               padding: "1px 4px",
                               borderRadius: "3px",
@@ -691,7 +833,7 @@ const AdminQrBadgeSheet = () => {
                           {fullName}
                         </h4>
                         <div className="text-[10px] font-bold text-gray-600">
-                          {guest.phoneNumber || "Verified Attendee"}
+                          Verified Attendee Pass
                         </div>
                       </div>
                     </div>
