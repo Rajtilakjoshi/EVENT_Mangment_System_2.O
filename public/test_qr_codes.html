@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Divine Event 2026 — Sample QR Code Test Sheet</title>
+  <!-- Load QRCode.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 24px; }
+    .header { max-width: 1100px; margin: 0 auto 24px; text-align: center; }
+    .header h1 { color: #6b21a8; font-size: 28px; font-weight: 800; }
+    .header p { color: #64748b; font-size: 14px; margin-top: 6px; }
+    .instructions {
+      max-width: 1100px; margin: 0 auto 24px; background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 12px; padding: 16px 20px; font-size: 13px; color: #334155; line-height: 1.6;
+    }
+    .instructions strong { color: #6b21a8; }
+    .generator-box {
+      max-width: 1100px; margin: 0 auto 24px; background: #faf5ff; border: 1px solid #d8b4fe;
+      border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .generator-box input {
+      flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid #c084fc; border-radius: 8px; font-size: 14px;
+    }
+    .generator-box button {
+      padding: 8px 18px; background: #7e22ce; color: #fff; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px; max-width: 1100px; margin: 0 auto;
+    }
+    .card {
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(107,33,168,0.1); border-color: #c084fc; }
+    .qr-container {
+      width: 150px; height: 150px; background: #ffffff; padding: 8px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+      border: 1px solid #f1f5f9;
+    }
+    .guest-name { font-weight: 700; font-size: 15px; color: #1e1b4b; }
+    .token-badge {
+      display: inline-block; background: #f3e8ff; color: #7e22ce; font-family: monospace;
+      font-weight: 700; font-size: 13px; padding: 3px 8px; border-radius: 6px; margin: 6px 0;
+    }
+    .phone { font-size: 12px; color: #64748b; }
+    .copy-btn {
+      margin-top: 10px; width: 100%; padding: 6px 0; font-size: 12px; font-weight: 600;
+      background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
+    }
+    .copy-btn:hover { background: #e2e8f0; color: #1e293b; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>📱 Sample Attendee Badges & QR Codes</h1>
+    <p>Divine Energy Hub — Event Management System (2026 Test Suite)</p>
+  </div>
+
+  <div class="instructions">
+    <strong>🎯 How to Test Live Scanning:</strong><br>
+    1. Open this page on your <strong>Smartphone</strong> or keep it open on half your screen.<br>
+    2. In another tab or on your laptop, open the <strong>Entry Gate Scanner</strong> or <strong>Prasad Scanner</strong>.<br>
+    3. Hold your phone's screen showing one of the QR codes below in front of your laptop's camera — it will scan and verify instantly!
+  </div>
+
+  <div class="generator-box">
+    <span><strong>Generate Custom QR:</strong></span>
+    <input type="text" id="customTokenInput" placeholder="Enter token ID (e.g. 24Dummy025)">
+    <button onclick="addCustomBadge()">Add to Sheet</button>
+  </div>
+
+  <div class="grid" id="badgeGrid"></div>
+
+  <script>
+    const sampleGuests = [
+      { token: "24Dummy001", name: "Archana Somani", phone: "9403201713" },
+      { token: "24Dummy002", name: "Habib Sardar Khan", phone: "9860969693" },
+      { token: "24Dummy003", name: "Sarita Gupta", phone: "9448353937" },
+      { token: "24Dummy004", name: "Reshma Habib Khan", phone: "9860969693" },
+      { token: "24Dummy005", name: "Janimiya Shaikh", phone: "9765974919" },
+      { token: "24Dummy006", name: "Ankush Rathod", phone: "7499084291" },
+      { token: "24Dummy007", name: "Nishigandha Devikar", phone: "9561687594" },
+      { token: "24Dummy008", name: "Nirmala Ramchandani", phone: "8856888134" },
+      { token: "24Dummy009", name: "Chandrakala Salunke", phone: "8007698843" },
+      { token: "24Dummy010", name: "Deepa Purohit", phone: "9422172463" },
+      { token: "24Dummy011", name: "Ganesh Salunke", phone: "9356951509" },
+      { token: "24Dummy012", name: "Gorakhanath Pawar", phone: "9423121634" }
+    ];
+
+    const grid = document.getElementById("badgeGrid");
+
+    function renderBadge(guest) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const qrContainer = document.createElement("div");
+      qrContainer.className = "qr-container";
+      card.appendChild(qrContainer);
+
+      new QRCode(qrContainer, {
+        text: guest.token,
+        width: 134,
+        height: 134,
+        colorDark: "#1e1b4b",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "guest-name";
+      nameEl.textContent = guest.name;
+      card.appendChild(nameEl);
+
+      const tokenEl = document.createElement("div");
+      tokenEl.className = "token-badge";
+      tokenEl.textContent = guest.token;
+      card.appendChild(tokenEl);
+
+      const phoneEl = document.createElement("div");
+      phoneEl.className = "phone";
+      phoneEl.textContent = "📞 " + guest.phone;
+      card.appendChild(phoneEl);
+
+      const copyBtn = document.createElement("button");
+      copyBtn.className = "copy-btn";
+      copyBtn.textContent = "📋 Copy Token";
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(guest.token);
+        copyBtn.textContent = "✅ Copied!";
+        setTimeout(() => copyBtn.textContent = "📋 Copy Token", 1500);
+      };
+      card.appendChild(copyBtn);
+
+      return card;
+    }
+
+    sampleGuests.forEach(g => grid.appendChild(renderBadge(g)));
+
+    function addCustomBadge() {
+      const input = document.getElementById("customTokenInput");
+      const val = input.value.trim();
+      if (!val) return;
+      const card = renderBadge({ token: val, name: "Custom Badge", phone: "Test" });
+      grid.prepend(card);
+      input.value = "";
+    }
+  </script>
+</body>
+</html>

@@ -1,26 +1,29 @@
 // firebase.js
 
-
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-
 const firebaseConfig = {
-  apiKey: "AIzaSyDUqMSyMk6sD9qWaK9xaZrG-uL2A4kImQA",
-  authDomain: "divine-36910.firebaseapp.com",
-  projectId: "divine-36910",
-  storageBucket: "divine-36910.firebasestorage.app",
-  messagingSenderId: "122149630256",
-  appId: "1:122149630256:web:1e1bf01ba67f57d2ba98f5",
-  measurementId: "G-7BRRRQKLB0"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// Analytics is optional — guard for SSR, tests, and unsupported browsers
+let analytics = null;
+isSupported().then((supported) => {
+  if (supported) analytics = getAnalytics(app);
+}).catch(() => {});
+
 const storage = getStorage(app);
 const auth = getAuth(app);
 const db = getFirestore(app);

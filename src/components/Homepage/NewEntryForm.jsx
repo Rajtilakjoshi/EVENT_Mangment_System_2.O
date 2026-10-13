@@ -2,13 +2,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { API_BASE_URL } from '../../utils/apiUtils';
 
+const initialState = {
+  token: '',
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  gender: '',
+  age: '',
+  email: '',
+  phoneNumber: '',
+  alternatePhoneNumber: '',
+  photoUrl: ""
+};
+
 const NewEntryForm = () => {
   const formRef = useRef(null);
+  const [formData, setFormData] = useState(initialState);
+
   useEffect(() => {
     if (formRef.current) {
       formRef.current.scrollTop = 0;
     }
   }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -26,8 +42,7 @@ const NewEntryForm = () => {
         alternatePhoneNumber: formData.alternatePhoneNumber,
         photoUrl: formData.photoUrl || ""
       };
-      console.log('[NewEntryForm] Submitting payload:', payload);
-  const response = await fetch(`${API_BASE_URL}/api/user`, {
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,11 +51,9 @@ const NewEntryForm = () => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[NewEntryForm] Backend error:', errorText);
-        throw new Error('Failed to submit form');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to submit form');
       }
-      // Reset form and show success message
       setFormData(initialState);
       alert('Form submitted successfully');
     } catch (error) {
@@ -48,21 +61,6 @@ const NewEntryForm = () => {
       alert('Error submitting form. Please try again.');
     }
   };
-
-  const initialState = {
-    token: '',
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    gender: '',
-    age: '',
-    email: '',
-    phoneNumber: '',
-    alternatePhoneNumber: '',
-    photoUrl: ""
-  };
-
-  const [formData, setFormData] = useState(initialState);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -1,17 +1,33 @@
-FROM python:3.11
+# Divine Energy Hub — Backend Dockerfile (2026 Production)
+FROM python:3.12-slim
+
+# Prevent Python from writing .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
 
 WORKDIR /app
 
-# Install system dependencies (if you need libgl1)
-RUN apt-get update && apt-get install -y libgl1
+# Install minimal OS dependencies if needed
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first
+# Copy dependency requirements
 COPY requirements.txt .
 
-# Force reinstall all dependencies
-RUN pip install --no-cache-dir --force-reinstall -r requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all source files
+# Copy application source
 COPY . .
 
-CMD ["python", "app.py"]
+# Expose default API port
+EXPOSE 8080
+
+# Health check for AWS App Runner / ECS container tasks
+HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/health || exit 1
+
+# Run with Gunicorn production WSGI server
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "4", "--threads", "2", "--timeout", "60", "app:app"]

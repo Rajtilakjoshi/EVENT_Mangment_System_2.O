@@ -92,8 +92,8 @@ p {
 }
 
 .img {
-  background-image: url("");
   background-size: 350%;
+  background-position: center;
 }
 
 

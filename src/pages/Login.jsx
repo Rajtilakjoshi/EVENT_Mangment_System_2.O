@@ -78,6 +78,7 @@ const Login = ({ onLogin }) => {
             <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full mb-4 px-3 py-2 border rounded" required />
             <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full mb-4 px-3 py-2 border rounded" required />
             {error && <div className="text-red-500 mb-2">{error}</div>}
+            {success && <div className="text-green-600 mb-2">{success}</div>}
             <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-500" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
           </form>
         ) : (
@@ -85,6 +86,7 @@ const Login = ({ onLogin }) => {
             <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full mb-4 px-3 py-2 border rounded" required />
             <input type="password" placeholder="Confirm New Password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} className="w-full mb-4 px-3 py-2 border rounded" required />
             {error && <div className="text-red-500 mb-2">{error}</div>}
+            {success && <div className="text-green-600 mb-2">{success}</div>}
             <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-500" disabled={loading}>{loading ? 'Setting...' : 'Set Password'}</button>
           </form>
         )}

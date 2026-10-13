@@ -1,15 +1,18 @@
+import os
+import sys
+
+from dotenv import load_dotenv
+
+load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
+uri = os.environ.get("MONGO_URI")
+if not uri:
+    print("MONGO_URI not set")
+    sys.exit(1)
+
 from pymongo import MongoClient
 
-MONGO_URI = "mongodb+srv://rajtilakjoshij_db_user:yEVlJaVc9ZU88iSV@cluster0.tmmz15k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-client = MongoClient(MONGO_URI)
-
-def test_connection():
-    try:
-        # The ismaster command is cheap and does not require auth.
-        client.admin.command('ismaster')
-        print("MongoDB connection successful!")
-    except Exception as e:
-        print(f"MongoDB connection failed: {e}")
-
-if __name__ == "__main__":
-    test_connection()
+client = MongoClient(uri, serverSelectionTimeoutMS=5000)
+print(client.admin.command("ping"))
+print("Mongo OK")

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: divine-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - FLASK_ENV=development
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/divine_dashboard}
+      - MONGO_DB=divine_dashboard_2026
+      - CORS_ORIGINS=http://localhost:3000
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_S3_PHOTO_BUCKET=${AWS_S3_PHOTO_BUCKET:-divine-event-photos-2026}
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7.0
+    container_name: divine-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

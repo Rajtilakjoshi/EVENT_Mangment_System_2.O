@@ -1,143 +1,81 @@
-<<<<<<< HEAD
-# 🕉️ Divine Energy Hub - Complete System
+# Divine Energy Hub — Event Management 2026
 
-A comprehensive event management system with QR code scanning, user management, and prasad distribution tracking.
+Volunteer QR scanning + admin live counts for venue Wi‑Fi that is often slow.
 
-## 🏗️ Project Structure
+## Architecture
 
-```
-divine-dashboard-main/
-├── src/                    # React Frontend
-│   ├── components/         # React Components
-│   ├── context/           # React Context
-│   ├── hooks/             # Custom Hooks
-│   └── utils/             # Utility Functions
-├── backend/               # Flask Backend
-│   ├── app.py            # Main Flask Application
-│   └── requirements.txt  # Python Dependencies
-├── public/               # Static Assets
-└── build/               # Production Build
-```
+| Layer | Role |
+|-------|------|
+| **MongoDB** | Live source of truth (guests, entry, prasad) |
+| **Flask API** (`:8080`) | Fast scan/lookup/stats; Sheets sync is write-behind only |
+| **React app** | Scanners + Admin Live Monitor (10s refresh) |
+| **Google Sheets** | Batch mirror from Mongo — never used for live scan lookups |
+| **IndexedDB + outbox** | Offline / slow-network cache and queued updates |
 
-## 🚀 Quick Start
+## Quick start
 
-### Option 1: Start Everything at Once
+### 1. Backend
+
 ```bash
-# Double-click or run:
-start-all.bat
-```
-
-### Option 2: Start Separately
-
-#### Backend Server (Port 5000)
-```bash
-# Double-click or run:
-start-backend.bat
-
-# Or manually:
 cd backend
+python -m venv .venv
+# Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+copy ..\.env.example .env   # then set MONGO_URI (required)
 python app.py
 ```
 
-#### Frontend Server (Port 3000)
-```bash
-# Double-click or run:
-start-frontend.bat
+API: `http://localhost:8080/api/health`
 
-# Or manually:
+### 2. Frontend
+
+```bash
 npm install
+# set REACT_APP_API_URL=http://localhost:8080 in .env.local
 npm start
 ```
 
-## 🌐 Access Points
+App: `http://localhost:3000` · Admin monitor: `/admin`
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000/api
-- **Health Check**: http://localhost:5000/api/health
+### 3. Import guests
 
-## 🔧 Features
-
-### Frontend Features
-- ✅ QR Code Scanning
-- ✅ User Registration & Search
-- ✅ Photo Upload
-- ✅ Prasad Distribution Tracking
-- ✅ Entry Gate Management
-- ✅ Token Finder
-- ✅ Google Sheets Integration
-
-### Backend API Endpoints
-- `POST /api/update-sheet` - Update Google Sheet
-- `POST /api/users` - Create new user
-- `GET /api/user/search` - Search user by name/phone
-- `GET /api/user/token/{token}` - Get user by token
-- `POST /api/upload` - Upload photos
-- `GET /api/prasad/status` - Get prasad status
-- `POST /api/prasad/update` - Update prasad status
-- `POST /api/prasad/entry` - Record prasad entry
-- `POST /api/check_qr` - Check QR code from image
-
-## 🛠️ Technology Stack
-
-### Frontend
-- React 18.2.0
-- React Router 6.20.0
-- Tailwind CSS 3.3.5
-- React QR Scanner
-- React Icons
-
-### Backend
-- Flask 2.3.3
-- OpenCV 4.8.1.78
-- NumPy 1.24.3
-- Flask-CORS 4.0.0
-
-## 📱 Usage
-
-1. **Start both servers** using `start-all.bat`
-2. **Open browser** to http://localhost:3000
-3. **Use the dashboard** to:
-   - Scan QR codes
-   - Register new users
-   - Track prasad distribution
-   - Manage entry gates
-   - Upload photos
-
-## 🔧 Development
-
-### Frontend Development
 ```bash
-cd divine-dashboard-main
-npm install
-npm start
+# from repo root, with MONGO_URI set
+python import_guests_data_to_db.py asthamashibir_dummy_data.csv
 ```
 
-### Backend Development
-```bash
-cd divine-dashboard-main/backend
-pip install -r requirements.txt
-python app.py
-```
+### 4. Google Sheets (optional mirror)
 
-## 📝 Notes
+Set in `backend/.env`:
 
-- Backend runs on port 5000
-- Frontend runs on port 3000
-- CORS is enabled for local development
-- Mock data is used for demonstration
-- In production, integrate with real databases and Google Sheets API
+- `GOOGLE_SPREADSHEET_ID`
+- `GOOGLE_SHEET_NAME=Guests`
+- `GOOGLE_SERVICE_ACCOUNT_FILE` → path to service account JSON
 
-## 🆘 Troubleshooting
+Share the sheet with the service account email. Use **Sync Google Sheet** on the dashboard or Admin → Sync Sheets.
 
-1. **Port already in use**: Change ports in app.py (backend) or package.json (frontend)
-2. **Python dependencies**: Run `pip install -r requirements.txt`
-3. **Node dependencies**: Run `npm install`
-4. **CORS issues**: Ensure backend is running on port 5000
+## Key API routes
 
----
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/scan/<token>` | One-RTT guest + status (scanners) |
+| GET | `/api/stats` | Accurate counts (admin, poll every 10s) |
+| POST | `/api/prasad/entry` | Mark entry (idempotent) |
+| POST | `/api/prasad/update` | Mark prasad1/2/3 (idempotent) |
+| POST | `/api/users` | On-spot guest create |
+| POST | `/api/update-sheet` | Batch Mongo → Sheets |
 
-**Made with ❤️ for Divine Energy Hub**
-=======
-# EVENT_Mangment_System_2.O
->>>>>>> db1e894833be65c7c4d3e2b94aa0a5254cbb27cd
+## Slow-network behaviour
+
+- Scanners use a single `/api/scan` call (not 2–3 parallel calls).
+- Guest profiles cached in IndexedDB; mutations queue offline and flush every 10s / on `online`.
+- Photos prefer Mongo `photo` URL; Storage lookup is fallback and non-blocking.
+- Admin marks data **stale** if a refresh takes longer than ~12s.
+
+## Security note
+
+Rotate any Mongo/SMTP credentials that were previously committed. Never put secrets in `.env.example`. Staff auth still needs Wave-2 hardening (hashed passwords + API auth).
+
+## Scripts
+
+- `start-all.bat` / `start-backend.bat` / `start-frontend.bat` — local Windows helpers

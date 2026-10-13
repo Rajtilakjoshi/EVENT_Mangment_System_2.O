@@ -1,8 +1,10 @@
 // Vercel/Node.js API route for registration with Firestore and email notification
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+import bcrypt from 'bcryptjs';
 import nodemailer from 'nodemailer';
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 // Initialize Firebase Admin SDK
 if (!global._firebaseApp) {
@@ -13,15 +15,13 @@ if (!global._firebaseApp) {
 }
 const db = getFirestore();
 
-
 // Email config
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL; // for volunteer notifications (all admins)
-const DEV_EMAILS = [
-  'rajtilakjoshij@gmail.com',
-  'Krishna.d.upadhyay@gmail.com',
-];
+const DEV_EMAILS = (process.env.DEV_EMAIL || '').split(',').map(e => e.trim()).filter(Boolean);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
+
+const BCRYPT_ROUNDS = 12;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -35,63 +35,63 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  const { email, role, name, phone } = req.body;
-  if (!email || !role || !name || !phone) {
+  const { email, name, phone, whatsappMobile } = req.body;
+  if (!email || !name || !phone) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  // Generate random password in format divine@123, divine@124, etc.
-  const randomNum = Math.floor(100 + Math.random() * 900); // 100-999
-  const password = `divine@${randomNum}`;
+  // Public self-register is always volunteer (admins are provisioned offline)
+  const role = 'volunteer';
+  const randomNum = Math.floor(100 + Math.random() * 900);
+  const tempPassword = `divine@${randomNum}`;
   try {
-    // Check if user exists
     const userSnap = await db.collection('users').where('email', '==', email).get();
     if (!userSnap.empty) {
       return res.status(400).json({ error: 'Email already registered' });
     }
-    // Add user to Firestore
+    // Hash the temporary password before storing
+    const hashedPassword = await bcrypt.hash(tempPassword, BCRYPT_ROUNDS);
     await db.collection('users').add({
       email,
-      password,
+      password: hashedPassword,
       role,
       name,
       phone,
+      whatsappMobile: whatsappMobile || phone,
       firstLogin: true,
+      authorized: false,
     });
-    // Prepare email
-    let subject = `New ${role} registration`;
+
+    // Send temporary password to the user (they must change it on first login)
+    await transporter.sendMail({
+      from: SMTP_USER,
+      to: email,
+      subject: 'Divine Event — Registration Successful',
+      html: `<h2 style="color:#7c3aed">Welcome!</h2>
+        <p>Your temporary password is: <b>${tempPassword}</b></p>
+        <p>You will be asked to set a new password on your first login.</p>`
+    });
+
+    // Notify admins (without the password)
+    const subject = `New ${role} registration`;
     const html = `<h2 style="color:#7c3aed">New ${role} registration</h2>
       <b>Name:</b> ${name}<br/>
       <b>Phone:</b> ${phone}<br/>
       <b>Email:</b> ${email}<br/>
-      <b>Password:</b> ${password}<br/>
       <b>Role:</b> ${role}<br/>`;
 
-    if (role === 'admin') {
-      // Send to all developers for new admin registration
-      await Promise.all(
-        DEV_EMAILS.map(devEmail =>
-          transporter.sendMail({ from: SMTP_USER, to: devEmail, subject, html })
-        )
-      );
-    } else {
-      // Fetch all current admin emails from Firestore
-      // Only send to admins who are authorized (authorized: true)
-      const adminsSnap = await db.collection('users')
-        .where('role', '==', 'admin')
-        .where('authorized', '==', true)
-        .get();
-      const adminEmails = adminsSnap.docs.map(doc => doc.data().email).filter(Boolean);
-      if (adminEmails.length === 0) {
-        // fallback to static ADMIN_EMAIL if no authorized admins found
-        adminEmails.push(ADMIN_EMAIL);
-      }
-      // Send to all authorized admins for new volunteer registration
-      await Promise.all(
-        adminEmails.map(adminEmail =>
-          transporter.sendMail({ from: SMTP_USER, to: adminEmail, subject, html })
-        )
-      );
+    const adminsSnap = await db.collection('users')
+      .where('role', '==', 'admin')
+      .where('authorized', '==', true)
+      .get();
+    const adminEmails = adminsSnap.docs.map(doc => doc.data().email).filter(Boolean);
+    if (adminEmails.length === 0 && ADMIN_EMAIL) {
+      adminEmails.push(ADMIN_EMAIL);
     }
+    await Promise.all(
+      [...adminEmails, ...DEV_EMAILS].filter(Boolean).map(to =>
+        transporter.sendMail({ from: SMTP_USER, to, subject, html })
+      )
+    );
     return res.status(200).json({ success: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
