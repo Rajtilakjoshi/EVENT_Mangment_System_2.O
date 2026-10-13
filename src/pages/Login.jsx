@@ -251,16 +251,6 @@ const Login = ({ onLogin }) => {
             Forgot Password?
           </button>
         </div>
-
-        <div className="mt-4 pt-3 border-t border-dashed border-gray-200 text-center">
-          <button
-            type="button"
-            onClick={() => navigate('/api-test')}
-            className="text-[11px] font-extrabold text-indigo-600 hover:text-indigo-800 underline"
-          >
-            🧪 Open Manual API Testing Console
-          </button>
-        </div>
       </div>
     </div>
   );
